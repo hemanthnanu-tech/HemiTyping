@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hemi Typing - Hyper Engine</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- html2canvas for Screenshots -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #030712; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        
+        :root {
+            --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+            --ease-in-out-circ: cubic-bezier(0.785, 0.135, 0.15, 0.86);
+        }
+
+        .smooth-transition-all {
+            transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+            transition-timing-function: var(--ease-out-expo);
+            transition-duration: 600ms;
+        }
+
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob { animation: blob 25s infinite alternate ease-in-out; }
+        
+        /* --- Glass Panel --- */
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.6);
+            position: relative;
+            z-index: 1;
+            border-radius: 2rem;
+            overflow: hidden;
+        }
+        
+        .glass-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 2rem; 
+            padding: 2px;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            transition: background 0.5s ease;
+        }
+
+        .glass-panel.love-border::before {
+            background: linear-gradient(45deg, #be123c, #f43f5e, #fda4af, #be123c);
+            background-size: 300% 300%;
+            animation: borderFlow 6s ease infinite;
+        }
+
+        .glass-panel.normal-border::before {
+            background: linear-gradient(45deg, #0891b2, #22d3ee, #67e8f9, #0891b2);
+            background-size: 300% 300%;
+            animation: borderFlow 6s ease infinite;
+        }
+
+        @keyframes borderFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        /* --- Buttons --- */
+        .glass-btn {
+            position: relative;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            transition: all 0.4s var(--ease-out-expo);
+            cursor: pointer;
+            overflow: hidden;
+        }
+        .glass-btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+        .glass-btn:hover::after { left: 100%; }
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px -5px rgba(0,0,0,0.3);
+        }
+        .glass-btn.active {
+            background: rgba(6, 182, 212, 0.15);
+            border-color: rgba(6, 182, 212, 0.6);
+            box-shadow: 0 0 25px rgba(6, 182, 212, 0.25);
+            color: #22d3ee;
+        }
+        .glass-btn.love-active {
+            background: rgba(244, 63, 94, 0.15);
+            border-color: rgba(244, 63, 94, 0.6);
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.3);
+            color: #fb7185;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-4px); }
+            40% { transform: translateX(4px); }
+            60% { transform: translateX(-2px); }
+            80% { transform: translateX(2px); }
+        }
+        .shake-anim { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+
+        @keyframes cursorPulse { 
+            0%, 100% { opacity: 1; transform: scaleY(1); } 
+            50% { opacity: 0.5; transform: scaleY(0.9); } 
+        }
+        .cursor-blink { animation: cursorPulse 1s ease-in-out infinite; }
+        
+        @keyframes letterPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: letterPop 0.2s var(--ease-out-expo) forwards; }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-enter { animation: slideUpFade 0.8s var(--ease-out-expo) forwards; }
+        .animate-fadeIn { animation: fadeIn 0.5s ease-out forwards; }
+
+        /* Transition Overlay */
+        .curtain-overlay {
+            position: fixed; inset: 0; z-index: 100; pointer-events: none; display: flex; flex-direction: column;
+        }
+        .curtain-layer {
+            position: absolute; inset: 0; transform: translateY(100%); transition: transform 0.8s var(--ease-in-out-circ);
+        }
+
+        .love-transition .layer-1 { background: #0f172a; z-index: 101; transform: translateY(100%); }
+        .love-transition .layer-2 { background: #881337; z-index: 102; transform: translateY(100%); }
+        .love-transition .layer-3 { background: #4c0519; z-index: 103; display: flex; align-items: center; justify-content: center; transform: translateY(100%); }
+        .love-transition.active .layer-1 { transform: translateY(0%); transition-delay: 0ms; }
+        .love-transition.active .layer-2 { transform: translateY(0%); transition-delay: 100ms; }
+        .love-transition.active .layer-3 { transform: translateY(0%); transition-delay: 200ms; }
+        .love-transition.exit .layer-1 { transform: translateY(100%); transition-delay: 200ms; }
+        .love-transition.exit .layer-2 { transform: translateY(100%); transition-delay: 100ms; }
+        .love-transition.exit .layer-3 { transform: translateY(100%); transition-delay: 0ms; }
+
+        .normal-transition .layer-1 { background: #4c0519; z-index: 101; transform: translateY(-100%); }
+        .normal-transition .layer-2 { background: #164e63; z-index: 102; transform: translateY(-100%); }
+        .normal-transition .layer-3 { background: #020617; z-index: 103; display: flex; align-items: center; justify-content: center; transform: translateY(-100%); }
+        .normal-transition.active .layer-1 { transform: translateY(0%); transition-delay: 0ms; }
+        .normal-transition.active .layer-2 { transform: translateY(0%); transition-delay: 100ms; }
+        .normal-transition.active .layer-3 { transform: translateY(0%); transition-delay: 200ms; }
+        .normal-transition.exit .layer-1 { transform: translateY(-100%); transition-delay: 200ms; }
+        .normal-transition.exit .layer-2 { transform: translateY(-100%); transition-delay: 100ms; }
+        .normal-transition.exit .layer-3 { transform: translateY(-100%); transition-delay: 0ms; }
+
+        @keyframes heartbeat {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.3); opacity: 1; filter: drop-shadow(0 0 30px rgba(244, 63, 94, 0.8)); }
+            100% { transform: scale(1); opacity: 0.5; }
+        }
+        .heart-pulse { animation: heartbeat 1.5s infinite ease-in-out; }
+
+        @keyframes electricPulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1) rotate(180deg); opacity: 1; filter: drop-shadow(0 0 30px rgba(34, 211, 238, 0.8)); }
+            100% { transform: scale(1) rotate(360deg); opacity: 0.5; }
+        }
+        .electric-pulse { animation: electricPulse 2s infinite linear; }
+
+        @keyframes gradient-x {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .animate-gradient-x {
+            animation: gradient-x 3s ease infinite;
+        }
+
+        /* Tooltip Logic */
+        .has-tooltip .tooltip {
+            visibility: hidden;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+        .has-tooltip:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        
+        /* Modal Backdrop */
+        .modal-backdrop {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="bg-[#030712] text-white antialiased overflow-x-hidden">
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // --- ICONS ---
+        const Icons = {
+            Keyboard: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><path d="M6 8h.001"></path><path d="M10 8h.001"></path><path d="M14 8h.001"></path><path d="M18 8h.001"></path><path d="M6 12h.001"></path><path d="M10 12h.001"></path><path d="M14 12h.001"></path><path d="M18 12h.001"></path><path d="M6 16h.001"></path><path d="M10 16h.001"></path><path d="M14 16h.001"></path></svg>,
+            Zap: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>,
+            Wind: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"></path></svg>,
+            Activity: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>,
+            Code: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>,
+            Volume2: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>,
+            VolumeX: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>,
+            Trophy: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 21h8m-4-9v9m-4.8-9a4.8 4.8 0 0 1-4.8-4.8v-.6a.6.6 0 0 1 .6-.6h18a.6.6 0 0 1 .6.6v.6a4.8 4.8 0 0 1-4.8 4.8M6 6h12"></path></svg>,
+            RotateCcw: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>,
+            Flame: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3.7.8 1.9 1.8 2.9 2.8z"></path></svg>,
+            Clock: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>,
+            Heart: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>,
+            Ghost: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 16.696v1.304c0 .552.448 1 1 1h4c.552 0 1-.448 1-1v-1.304"></path><path d="M20 12.348V10a8 8 0 0 0-16 0v2.348c0 2.21 1.79 4 4 4h8c2.21 0 4-1.79 4-4z"></path><path d="M9 10a1 1 0 0 1 2 0"></path><path d="M13 10a1 1 0 0 1 2 0"></path></svg>,
+            Fire: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.1.2-2.2.6-3.3.7.8 1.9 1.8 2.9 2.8z"></path></svg>,
+            ToggleRight: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="16" cy="12" r="3"></circle></svg>,
+            ToggleLeft: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="5" width="22" height="14" rx="7" ry="7"></rect><circle cx="8" cy="12" r="3"></circle></svg>,
+            Stats: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>,
+            Calendar: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>,
+            Eye: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>,
+            EyeOff: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>,
+            X: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
+            Info: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>,
+            Camera: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>,
+            Share2: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>,
+            ArrowRight: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>,
+            Check: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>,
+            CheckCircle: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>,
+            AlertCircle: ({className}) => <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        };
+
+        // --- EXPANDED DATA LIBRARIES ---
+        const NORMAL_DATA = {
+            cruise: [
+                "The sun set behind the mountains, painting the sky in shades of purple and orange.",
+                "Coffee is the best way to start the morning, especially when it is fresh and hot.",
+                "Traveling to new places opens your mind and fills your heart with stories to tell.",
+                "A gentle rain began to fall, tapping softly against the roof like a lullaby.",
+                "Blue whales are the largest animals known to have ever lived on Earth.",
+                "Every sunset brings the promise of a new dawn and a fresh start tomorrow.",
+                "The waves crashed against the shore, creating a rhythmic and soothing sound.",
+                "The city lights shimmered in the distance, looking like a field of fireflies.",
+                "Kindness is a language which the deaf can hear and the blind can see.",
+                "The early bird catches the worm, but the second mouse gets the cheese.",
+                "Time flies when you are having fun, so make every moment count.",
+                "The best preparation for tomorrow is doing your best today.",
+                "Success is not the key to happiness. Happiness is the key to success.",
+                "Believe you can and you're halfway there.",
+                "The only limit to our realization of tomorrow will be our doubts of today.",
+                "In the middle of every difficulty lies opportunity.",
+                "Happiness is not something ready made. It comes from your own actions.",
+                "It always seems impossible until it's done.",
+                "Keep your face always toward the sunshine - and shadows will fall behind you.",
+                "What you get by achieving your goals is not as important as what you become by achieving your goals.",
+                "The future belongs to those who believe in the beauty of their dreams.",
+                "Don't watch the clock; do what it does. Keep going.",
+                "You miss 100% of the shots you don't take.",
+                "Whether you think you can or you think you can't, you're right.",
+                "I have not failed. I've just found 10,000 ways that won't work.",
+                "A person who never made a mistake never tried anything new."
+            ],
+            sport: [
+                "To be, or not to be, that is the question: Whether 'tis nobler in the mind to suffer the slings and arrows of outrageous fortune.",
+                "Space: the final frontier. These are the voyages of the starship Enterprise.",
+                "The only way to do great work is to love what you do. If you haven't found it yet, keep looking.",
+                "It was the best of times, it was the worst of times, it was the age of wisdom.",
+                "I must not fear. Fear is the mind-killer. Fear is the little-death that brings total obliteration.",
+                "Do not go gentle into that good night, Old age should burn and rave at close of day.",
+                "Life is what happens to you while you're busy making other plans.",
+                "It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a wife.",
+                "I am no bird; and no net ensnares me: I am a free human being with an independent will.",
+                "We are all in the gutter, but some of us are looking at the stars.",
+                "All that is gold does not glitter, Not all those who wander are lost.",
+                "It is our choices, Harry, that show what we truly are, far more than our abilities.",
+                "The world is indeed full of peril, and in it there are many dark places; but still there is much that is fair.",
+                "I wish it need not have happened in my time, said Frodo. So do I, said Gandalf, and so do all who live to see such times.",
+                "War is peace. Freedom is slavery. Ignorance is strength.",
+                "Who controls the past controls the future. Who controls the present controls the past.",
+                "It was a bright cold day in April, and the clocks were striking thirteen.",
+                "Call me Ishmael. Some years ago—never mind how long precisely—having little or no money in my purse.",
+                "The only thing necessary for the triumph of evil is for good men to do nothing.",
+                "Those who cannot remember the past are condemned to repeat it.",
+                "In the end, we will remember not the words of our enemies, but the silence of our friends.",
+                "To define is to limit.",
+                "I can resist everything except temptation."
+            ],
+            code: [
+                "const calculateSpeed = (distance, time) => { return time > 0 ? distance / time : 0; };",
+                "import React, { useState } from 'react'; export default function App() { return <div>Hello</div>; }",
+                "def bubble_sort(arr): n = len(arr); for i in range(n): for j in range(0, n-i-1): if arr[j] > arr[j+1]: swap()",
+                "class NeuralNetwork { constructor(layers) { this.layers = layers; this.weights = []; this.biases = []; } }",
+                "SELECT * FROM users WHERE active = 1 ORDER BY created_at DESC LIMIT 10;",
+                "git commit -m 'Fixed the bug causing the infinite loop in the render cycle'",
+                "div { display: flex; justify-content: center; align-items: center; height: 100vh; }",
+                "const [user, setUser] = useState(null); useEffect(() => { fetchUser().then(setUser); }, []);",
+                "array.map(item => item * 2).filter(item => item > 10).reduce((a, b) => a + b, 0);",
+                "if (loading) return <Spinner />; if (error) return <ErrorMessage message={error.message} />;",
+                "public static void main(String[] args) { System.out.println('Hello World'); }",
+                "for (let i = 0; i < 10; i++) { console.log(i); }",
+                "while (true) { if (checkCondition()) break; }",
+                "try { riskyOperation(); } catch (e) { handleError(e); } finally { cleanup(); }",
+                "const { data, error } = useSWR('/api/user', fetcher);",
+                "chmod +x script.sh && ./script.sh",
+                "docker run -d -p 80:80 nginx",
+                "kubectl get pods --all-namespaces",
+                "npm install --save-dev tailwindcss postcss autoprefixer",
+                "pip install -r requirements.txt",
+                " cargo build --release",
+                "go run main.go",
+                "rustc main.rs",
+                "javac Main.java",
+                "python3 script.py"
+            ]
+        };
+
+        const LOVE_DATA = {
+            flirty: [
+                "Are you a parking ticket? Because you've got FINE written all over you.",
+                "Do you have a name, or can I call you mine?",
+                "Is your name Wi-Fi? Because I'm feeling a connection.",
+                "If you were a fruit, you'd be a fine-apple.",
+                "Are you made of copper and tellurium? Because you're CuTe.",
+                "I must be a snowflake, because I've fallen for you.",
+                "Are you a camera? Because every time I look at you, I smile.",
+                "If looks could kill, you'd be a weapon of mass destruction.",
+                "Do you believe in love at first sight, or should I walk by again?",
+                "I'm not a photographer, but I can picture us together.",
+                "Is there an airport nearby, or is that just my heart taking off?",
+                "You must be a magician, because everyone else disappears when you're around.",
+                "Did the sun come out or did you just smile at me?",
+                "Are you a time traveler? Because I see you in my future.",
+                "Do you have a Band-Aid? Because I just scraped my knee falling for you.",
+                "If you were a vegetable, you'd be a cute-cumber.",
+                "Are you French? Because Eiffel for you.",
+                "I seem to have lost my phone number. Can I have yours?",
+                "Is your name Google? Because you have everything I've been searching for.",
+                "Are you a bank loan? Because you have my interest.",
+                "If being sexy was a crime, you'd be guilty as charged."
+            ],
+            dark: [
+                "I would burn the world just to see you smile in the flames.",
+                "You are the poison I willingly drink, drop by drop.",
+                "My love for you is a madness that no asylum can cure.",
+                "I will love you until the stars turn cold and the universe collapses.",
+                "We are two broken souls haunting the same graveyard.",
+                "Your name is carved into my bones.",
+                "I crave your darkness as much as your light.",
+                "You are the beautiful nightmare I never want to wake up from.",
+                "I would tear the heavens apart just to find you.",
+                "Our love is a tragedy written in the blood of angels.",
+                "Possession is not enough; I need to consume your very soul.",
+                "I loved her not for the way she danced with my angels, but for the way the sound of her name could silence my demons.",
+                "He stepped down, trying not to look long at her, as if she were the sun, yet he saw her, like the sun, even without looking.",
+                "Whatever our souls are made of, his and mine are the same.",
+                "I wish I knew how to quit you.",
+                "If I loved you less, I might be able to talk about it more.",
+                "You pierce my soul. I am half agony, half hope.",
+                "I would find you in any lifetime.",
+                "We are all searching for someone whose demons play well with ours.",
+                "Love is a dagger. It's a weapon to be wielded far away or up close.",
+                "I have waited for you for an eternity, and I will wait for an eternity more."
+            ],
+            seductive: [
+                "I can't stop thinking about what we could be doing right now.",
+                "You have no idea the effect you have on me.",
+                "Come a little closer, I promise I don't bite. Unless you ask.",
+                "Your voice is my favorite sound, especially when you whisper.",
+                "I want to be the reason you look down at your phone and smile.",
+                "The way you look at me sets my blood on fire.",
+                "I tried to stop thinking about you, but I failed miserably.",
+                "You are my favorite distraction.",
+                "I want to count every freckle on your body.",
+                "Let's flip a coin. Heads I'm yours, tails you're mine.",
+                "I don't want anyone else to have your heart, kiss your lips, or be in your arms.",
+                "Every time you get close, I forget how to breathe.",
+                "I like it when you smile, but I love it when I'm the reason.",
+                "You are the only thing I want to taste.",
+                "I could get used to waking up next to you.",
+                "Your lips look lonely. Would they like to meet mine?",
+                "I have a craving that only you can satisfy.",
+                "I want to be the one who makes you lose control.",
+                "Tell me what you want, and I'll make it happen.",
+                "I'm not just falling for you; I'm drowning in you."
+            ]
+        };
+
+        // --- AUDIO ENGINE (FIXED) ---
+        // Single audio context to prevent browser limit
+        let globalAudioCtx = null;
+
+        const playSound = (type) => {
+            if (!globalAudioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) globalAudioCtx = new AudioContext();
+            }
+            
+            if (globalAudioCtx && globalAudioCtx.state === 'suspended') {
+                globalAudioCtx.resume();
+            }
+
+            if (!globalAudioCtx) return;
+
+            const ctx = globalAudioCtx;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            const now = ctx.currentTime;
+
+            if (type === 'click') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'streak') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.linearRampToValueAtTime(1200, now + 0.2);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } else if (type === 'error') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(50, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            } else if (type === 'finish') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(440, now);
+                osc.frequency.setValueAtTime(880, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 1);
+                osc.start(now);
+                osc.stop(now + 1);
+            }
+        };
+
+        // --- PARTICLE CONFETTI (Visual Effect Fix) ---
+        const Confetti = () => {
+            const canvasRef = useRef(null);
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                let particles = [];
+                for(let i=0; i<100; i++) {
+                    particles.push({
+                        x: canvas.width/2,
+                        y: canvas.height/2,
+                        vx: (Math.random() - 0.5) * 20,
+                        vy: (Math.random() - 0.5) * 20,
+                        size: Math.random() * 5 + 2,
+                        color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+                        life: 100
+                    });
+                }
+
+                const render = () => {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    particles = particles.filter(p => p.life > 0);
+                    particles.forEach(p => {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.vy += 0.2; // gravity
+                        p.life--;
+                        ctx.fillStyle = p.color;
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+                        ctx.fill();
+                    });
+                    if(particles.length > 0) requestAnimationFrame(render);
+                };
+                render();
+            }, []);
+            return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />;
+        };
+
+        // --- RESULT CHART COMPONENT ---
+        const WpmChart = ({ history }) => {
+            if (!history || history.length < 2) return null;
+            const maxWpm = Math.max(...history, 60);
+            const minWpm = Math.min(...history, 0);
+            const height = 120;
+            const width = 300;
+            const points = history.map((val, i) => {
+                const x = (i / (history.length - 1)) * width;
+                const y = height - ((val - minWpm) / (maxWpm - minWpm || 1)) * height;
+                return `${x},${y}`;
+            }).join(' ');
+
+            return (
+                <div className="w-full max-w-sm h-[140px] flex items-end justify-center mb-6 relative">
+                    <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
+                        <defs>
+                            <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+                                <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.4"/>
+                                <stop offset="100%" stopColor="#22d3ee" stopOpacity="0"/>
+                            </linearGradient>
+                        </defs>
+                        <path d={`M0,${height} ${points} V${height} Z`} fill="url(#chartGradient)" />
+                        <polyline fill="none" stroke="#22d3ee" strokeWidth="2" points={points} strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    <div className="absolute top-0 right-0 text-[10px] text-cyan-400 font-mono bg-cyan-950/30 px-1 rounded">Peak: {Math.max(...history)}</div>
+                </div>
+            );
+        };
+
+        // --- MODALS ---
+        const StatsModal = ({ isOpen, onClose, stats }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+                    <div className="glass-panel p-8 max-w-md w-full mx-4 border border-white/10 animate-pop">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Icons.Activity className="w-6 h-6 text-cyan-400"/> Career Stats</h2>
+                            <button onClick={onClose} className="text-white/50 hover:text-white"><Icons.X className="w-6 h-6"/></button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-white/5 p-4 rounded-xl">
+                                <div className="text-xs text-white/50 uppercase tracking-wider">Total Runs</div>
+                                <div className="text-2xl font-bold text-white">{stats.totalRuns}</div>
+                            </div>
+                            <div className="bg-white/5 p-4 rounded-xl">
+                                <div className="text-xs text-white/50 uppercase tracking-wider">Avg WPM</div>
+                                <div className="text-2xl font-bold text-cyan-400">{stats.avgWpm}</div>
+                            </div>
+                            <div className="bg-white/5 p-4 rounded-xl">
+                                <div className="text-xs text-white/50 uppercase tracking-wider">Best WPM</div>
+                                <div className="text-2xl font-bold text-amber-400">{stats.bestWpm}</div>
+                            </div>
+                            <div className="bg-white/5 p-4 rounded-xl">
+                                <div className="text-xs text-white/50 uppercase tracking-wider">Total Chars</div>
+                                <div className="text-2xl font-bold text-purple-400">{stats.totalChars}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const DailyModal = ({ isOpen, onClose, dailyTask, onStart }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+                    <div className="glass-panel p-8 max-w-md w-full mx-4 border border-white/10 animate-pop relative overflow-hidden">
+                        {dailyTask.completed && (
+                            <div className="absolute inset-0 bg-emerald-500/10 z-0 pointer-events-none"></div>
+                        )}
+                        <div className="flex justify-between items-center mb-6 relative z-10">
+                            <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Icons.Calendar className="w-6 h-6 text-amber-400"/> Daily Ops</h2>
+                            <button onClick={onClose} className="text-white/50 hover:text-white"><Icons.X className="w-6 h-6"/></button>
+                        </div>
+                        <div className="space-y-4 relative z-10">
+                            <div className="p-4 bg-white/5 rounded-xl border border-white/5">
+                                <div className="text-sm text-white/60 mb-1">Objective</div>
+                                <div className="text-lg font-medium text-white">Reach <span className="text-cyan-400 font-bold">{dailyTask.targetWpm} WPM</span> in <span className="text-purple-400 font-bold">{dailyTask.mode}</span> mode</div>
+                            </div>
+                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+                                <div className="text-sm text-white/60">Status</div>
+                                <div className={`font-bold uppercase tracking-widest ${dailyTask.completed ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                    {dailyTask.completed ? 'COMPLETED' : 'PENDING'}
+                                </div>
+                            </div>
+                            {!dailyTask.completed ? (
+                                <button 
+                                    onClick={onStart}
+                                    className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl shadow-lg shadow-cyan-500/20 transition-all active:scale-95"
+                                >
+                                    Start Mission
+                                </button>
+                            ) : (
+                                <div className="w-full py-3 text-center text-emerald-400 font-bold bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                                    Mission Accomplished
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const AboutModal = ({ isOpen, onClose }) => {
+            if (!isOpen) return null;
+            return (
+                <div className="fixed inset-0 z-50 flex items-center justify-center modal-backdrop">
+                    <div className="glass-panel p-8 max-w-md w-full mx-4 border border-white/10 animate-pop overflow-hidden">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Icons.Info className="w-6 h-6 text-cyan-400"/> System Info</h2>
+                            <button onClick={onClose} className="text-white/50 hover:text-white"><Icons.X className="w-6 h-6"/></button>
+                        </div>
+                        <div className="space-y-6">
+                            <div className="space-y-3">
+                                <h3 className="text-sm font-bold text-white/40 uppercase tracking-widest border-b border-white/10 pb-2">Metrics</h3>
+                                <div className="grid gap-3 text-sm">
+                                    <div><span className="text-cyan-400 font-bold">WPM (Words Per Minute)</span><p className="text-white/60">Calculated as (Total Characters / 5) divided by time elapsed. Standard measure of typing speed.</p></div>
+                                    <div><span className="text-emerald-400 font-bold">Accuracy</span><p className="text-white/60">Percentage of keystrokes that were correct. Accuracy = (Correct / Total) * 100.</p></div>
+                                    <div><span className="text-amber-400 font-bold">Max Streak</span><p className="text-white/60">The highest number of characters typed correctly in a row without a single mistake.</p></div>
+                                    <div><span className="text-purple-400 font-bold">Raw</span><p className="text-white/60">Total number of keystrokes registered, including backspaces and errors.</p></div>
+                                </div>
+                            </div>
+                            
+                            <div className="mt-8 pt-6 border-t border-white/5">
+                                <div className="relative group w-full h-32 perspective-1000">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 to-purple-500/20 rounded-xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-700"></div>
+                                    <div className="relative h-full w-full bg-black/40 rounded-xl border border-white/10 p-6 flex flex-col items-center justify-center overflow-hidden transition-all duration-500 group-hover:border-cyan-500/30 group-hover:transform group-hover:scale-[1.02]">
+                                        
+                                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]"></div>
+
+                                        <div className="z-10 text-center space-y-2">
+                                            <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-white/40 group-hover:text-cyan-400 transition-colors duration-300">Architect & Engineer</p>
+                                            
+                                            <h1 className="text-3xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white via-cyan-200 to-white bg-[length:200%_auto] animate-gradient-x drop-shadow-lg">
+                                                HEMANTH KUMAR K
+                                            </h1>
+                                            
+                                            <div className="flex items-center justify-center gap-3 mt-2 opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                                                <div className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-cyan-300">v2.0.0</div>
+                                                <div className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-purple-300">Hyper Engine</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MAIN APP ---
+        function HemiTyping() {
+            const [isLoveMode, setIsLoveMode] = useState(false);
+            const [isZenMode, setIsZenMode] = useState(false);
+            const [transitionState, setTransitionState] = useState('idle');
+            const [transitionDirection, setTransitionDirection] = useState('toLove');
+            const [mode, setMode] = useState('cruise');
+            const [duration, setDuration] = useState(30);
+            const [userInput, setUserInput] = useState("");
+            const [text, setText] = useState("");
+            const [timeLeft, setTimeLeft] = useState(30);
+            const [isActive, setIsActive] = useState(false);
+            const [isFinished, setIsFinished] = useState(false);
+            const [wpm, setWpm] = useState(0);
+            const [accuracy, setAccuracy] = useState(100);
+            const [streak, setStreak] = useState(0);
+            const [maxStreak, setMaxStreak] = useState(0);
+            const [highScore, setHighScore] = useState(0);
+            const [shake, setShake] = useState(false);
+            const [soundEnabled, setSoundEnabled] = useState(true);
+            const [lastTextIndex, setLastTextIndex] = useState(-1);
+            const [wpmHistory, setWpmHistory] = useState([]);
+            const [stats, setStats] = useState({ totalRuns: 0, avgWpm: 0, bestWpm: 0, totalChars: 0, history: [] });
+            const [dailyTask, setDailyTask] = useState({ mode: 'cruise', targetWpm: 60, completed: false });
+            const [showStats, setShowStats] = useState(false);
+            const [showDaily, setShowDaily] = useState(false);
+            const [showAbout, setShowAbout] = useState(false);
+            const [shareCopied, setShareCopied] = useState(false);
+            
+            // NEW: Word Stats State
+            const [wordStats, setWordStats] = useState({ correct: 0, wrong: 0, total: 0 });
+            
+            const wpmRef = useRef(wpm);
+            const inputRef = useRef(null);
+
+            // Global Key Listener for "Click-less" typing
+            useEffect(() => {
+                const handleGlobalKeyDown = (e) => {
+                    if (showStats || showDaily || showAbout) return;
+                    if (e.ctrlKey || e.metaKey || e.altKey) return;
+                    if (document.activeElement !== inputRef.current && inputRef.current) {
+                        inputRef.current.focus();
+                    }
+                };
+                window.addEventListener('keydown', handleGlobalKeyDown);
+                return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+            }, [showStats, showDaily, showAbout]);
+
+            useEffect(() => { wpmRef.current = wpm; }, [wpm]);
+
+            const availableModes = useMemo(() => {
+                if (isLoveMode) return ['flirty', 'dark', 'seductive'];
+                return ['cruise', 'sport', 'code'];
+            }, [isLoveMode]);
+
+            useEffect(() => {
+                const savedStats = localStorage.getItem('hemi_stats');
+                if (savedStats) setStats(JSON.parse(savedStats));
+                const today = new Date().toDateString();
+                const savedDaily = localStorage.getItem('hemi_daily');
+                if (savedDaily) {
+                    const parsedDaily = JSON.parse(savedDaily);
+                    if (parsedDaily.date === today) {
+                        setDailyTask(parsedDaily.task);
+                        return;
+                    }
+                }
+                const seed = today.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+                const modes = ['cruise', 'sport', 'code'];
+                const dailyMode = modes[seed % modes.length];
+                const dailyTarget = 40 + (seed % 5) * 10;
+                const newDaily = { mode: dailyMode, targetWpm: dailyTarget, completed: false };
+                setDailyTask(newDaily);
+                localStorage.setItem('hemi_daily', JSON.stringify({ date: today, task: newDaily }));
+            }, []);
+
+            const updateStats = (finalWpm, finalChars) => {
+                setStats(prev => {
+                    const newTotalRuns = prev.totalRuns + 1;
+                    const newTotalChars = prev.totalChars + finalChars;
+                    const newBest = Math.max(prev.bestWpm, finalWpm);
+                    const newAvg = Math.round(((prev.avgWpm * prev.totalRuns) + finalWpm) / newTotalRuns);
+                    const newStats = { totalRuns: newTotalRuns, totalChars: newTotalChars, bestWpm: newBest, avgWpm: newAvg, history: [...prev.history, finalWpm].slice(-20) };
+                    localStorage.setItem('hemi_stats', JSON.stringify(newStats));
+                    return newStats;
+                });
+                if (!dailyTask.completed && !isLoveMode && mode === dailyTask.mode && finalWpm >= dailyTask.targetWpm) {
+                    const updatedDaily = { ...dailyTask, completed: true };
+                    setDailyTask(updatedDaily);
+                    localStorage.setItem('hemi_daily', JSON.stringify({ date: new Date().toDateString(), task: updatedDaily }));
+                }
+            };
+
+            const toggleTheme = () => {
+                if (transitionState !== 'idle') return;
+                const goingToLove = !isLoveMode;
+                setTransitionDirection(goingToLove ? 'toLove' : 'toNormal');
+                setTransitionState('active');
+                setTimeout(() => {
+                    setIsLoveMode(goingToLove);
+                    const newModes = goingToLove ? ['flirty', 'dark', 'seductive'] : ['cruise', 'sport', 'code'];
+                    setMode(newModes[0]);
+                    resetGameForThemeSwitch(newModes[0], goingToLove);
+                    setTimeout(() => { setTransitionState('idle'); }, 800);
+                }, 800);
+            };
+
+            useEffect(() => {
+                if (transitionState === 'idle') resetGame(mode);
+            }, [mode, duration]);
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+                        e.preventDefault();
+                        if (!showDaily && !showStats && !showAbout) resetGame();
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [mode, duration, isLoveMode, showDaily, showStats, showAbout]);
+
+            useEffect(() => { if(!text) resetGame(availableModes[0]); }, []);
+
+            const resetGameForThemeSwitch = (targetMode, targetIsLove) => {
+                const sourceData = targetIsLove ? LOVE_DATA : NORMAL_DATA;
+                const dataset = sourceData[targetMode].map(s => s.trim());
+                const newIndex = Math.floor(Math.random() * dataset.length);
+                setLastTextIndex(newIndex);
+                setText(dataset[newIndex]);
+                setUserInput("");
+                setTimeLeft(duration);
+                setIsActive(false);
+                setIsFinished(false);
+                setWpm(0);
+                setAccuracy(100);
+                setStreak(0);
+                setMaxStreak(0);
+                setWpmHistory([]);
+                setShareCopied(false);
+                setWordStats({ correct: 0, wrong: 0, total: 0 });
+                if (inputRef.current) inputRef.current.focus();
+            };
+
+            const resetGame = (targetMode = mode) => {
+                const sourceData = isLoveMode ? LOVE_DATA : NORMAL_DATA;
+                const safeMode = sourceData[targetMode] ? targetMode : Object.keys(sourceData)[0];
+                const dataset = sourceData[safeMode].map(s => s.trim());
+                let newIndex;
+                let attempts = 0;
+                do {
+                    newIndex = Math.floor(Math.random() * dataset.length);
+                    attempts++;
+                } while (newIndex === lastTextIndex && dataset.length > 1 && attempts < 10);
+                setLastTextIndex(newIndex);
+                setText(dataset[newIndex]);
+                setUserInput("");
+                setTimeLeft(duration);
+                setIsActive(false);
+                setIsFinished(false);
+                setWpm(0);
+                setAccuracy(100);
+                setStreak(0);
+                setMaxStreak(0);
+                setWpmHistory([]);
+                setShareCopied(false);
+                setWordStats({ correct: 0, wrong: 0, total: 0 });
+                if (inputRef.current) inputRef.current.focus();
+            };
+
+            // --- NEW FUNCTIONALITY ---
+            const handleScreenshot = async () => {
+                const element = document.getElementById('result-card'); 
+                if(!element) return;
+                try {
+                    const canvas = await html2canvas(element, { backgroundColor: null, scale: 2, useCORS: true });
+                    const link = document.createElement('a');
+                    link.download = `hemi-result-${Date.now()}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                } catch(e) { console.error("Screenshot failed", e); }
+            };
+
+            const handleShare = () => {
+                const shareText = `🚀 Hemi Typing Result:\nSpeed: ${wpm} WPM\nAccuracy: ${accuracy}%\nWord Accuracy: ${Math.round((wordStats.correct / wordStats.total) * 100)}%\nMode: ${mode}\n\nCan you beat my score?`;
+                if (navigator.share) {
+                    navigator.share({ title: 'Hemi Typing Score', text: shareText }).catch(console.error);
+                } else {
+                    navigator.clipboard.writeText(shareText);
+                    setShareCopied(true);
+                    setTimeout(() => setShareCopied(false), 2000);
+                }
+            };
+
+            useEffect(() => {
+                let interval = null;
+                if (isActive) {
+                    interval = setInterval(() => {
+                        setTimeLeft((prevTime) => {
+                            if (prevTime <= 1) return 0;
+                            return prevTime - 1;
+                        });
+                        setWpmHistory(prev => [...prev, wpmRef.current]);
+                    }, 1000);
+                }
+                return () => clearInterval(interval);
+            }, [isActive]);
+
+            useEffect(() => { if (timeLeft === 0 && isActive) finishGame(); }, [timeLeft, isActive]);
+
+            useEffect(() => {
+                if (isActive || isFinished) {
+                    const timeElapsed = duration - timeLeft;
+                    const minElapsed = timeElapsed === 0 ? 0.001 : timeElapsed / 60;
+                    const grossWpm = Math.round((userInput.length / 5) / minElapsed);
+                    setWpm(grossWpm);
+                    let correct = 0;
+                    for (let i = 0; i < userInput.length; i++) { if (userInput[i] === text[i]) correct++; }
+                    const acc = userInput.length > 0 ? Math.round((correct / userInput.length) * 100) : 100;
+                    setAccuracy(acc);
+                }
+            }, [userInput, timeLeft]);
+
+            const finishGame = (finalInput) => {
+                setIsActive(false);
+                setIsFinished(true);
+                
+                // Ensure we use the latest input for calculation
+                const currentInput = typeof finalInput === 'string' ? finalInput : userInput;
+
+                if (soundEnabled) playSound('finish');
+                if (wpm > highScore) setHighScore(wpm);
+                updateStats(wpm, currentInput.length);
+
+                // --- WORD STATS CALCULATION ---
+                const targetWords = text.trim().split(/\s+/);
+                const inputWords = currentInput.trim().split(/\s+/);
+                let correctW = 0;
+                
+                inputWords.forEach((w, i) => {
+                    if (i < targetWords.length && w === targetWords[i]) {
+                        correctW++;
+                    }
+                });
+                
+                const totalW = targetWords.length;
+                const wrongW = Math.max(0, totalW - correctW); // Simplified logic: anything not correct is wrong/missed
+                
+                setWordStats({ correct: correctW, wrong: wrongW, total: totalW });
+            };
+
+            const handleChange = (e) => {
+                const value = e.target.value;
+                if (isFinished || !text) return;
+                if (!isActive) setIsActive(true);
+                const charIndex = value.length - 1;
+                const isBackspace = value.length < userInput.length;
+                if (!isBackspace && value.length > 0) {
+                    if (value[charIndex] === text[charIndex]) {
+                        if (soundEnabled) playSound('click');
+                        const newStreak = streak + 1;
+                        setStreak(newStreak);
+                        if (newStreak > maxStreak) setMaxStreak(newStreak);
+                        if (newStreak % 10 === 0 && soundEnabled) playSound('streak');
+                    } else {
+                        if (soundEnabled) playSound('error');
+                        setShake(true);
+                        setStreak(0);
+                        setTimeout(() => setShake(false), 200);
+                    }
+                }
+                setUserInput(value);
+                if (value.length === text.length) finishGame(value);
+            };
+
+            const getStreakColor = () => {
+                if (isLoveMode) {
+                     if (streak > 20) return "text-rose-500 drop-shadow-[0_0_10px_rgba(244,63,94,0.8)]";
+                     return "text-rose-400";
+                }
+                if (streak > 30) return "text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.8)]";
+                return "text-slate-500";
+            };
+
+            const renderText = () => {
+                if (!text) return null;
+                return text.split("").map((char, index) => {
+                    let colorClass = "text-white/20";
+                    let animateClass = "";
+                    if (index < userInput.length) {
+                        if (userInput[index] === char) {
+                            colorClass = isLoveMode 
+                                ? "text-rose-400 drop-shadow-[0_0_5px_rgba(244,63,94,0.6)] font-bold" 
+                                : "text-white drop-shadow-[0_0_2px_rgba(255,255,255,0.8)]";
+                            if (index === userInput.length - 1) animateClass = "animate-pop inline-block origin-center";
+                        } else {
+                            colorClass = "text-red-500 bg-red-500/10 rounded";
+                        }
+                    }
+                    const isCurrent = index === userInput.length;
+                    return (
+                        <span key={index} className={`relative transition-colors duration-100 ${colorClass} ${animateClass}`}>
+                            {isCurrent && (
+                                <span className={`absolute -left-[1px] -top-0.5 w-[2px] h-[1.2em] cursor-blink z-10 rounded-full ${isLoveMode ? 'bg-rose-500 shadow-[0_0_15px_#f43f5e]' : 'bg-cyan-400 shadow-[0_0_10px_#22d3ee]'}`}></span>
+                            )}
+                            {char}
+                        </span>
+                    );
+                });
+            };
+
+            const progress = text ? Math.min((userInput.length / text.length) * 100, 100) : 0;
+            const uiOpacity = (isActive || isZenMode) ? "opacity-0 pointer-events-none transition-opacity duration-500" : "opacity-100 transition-opacity duration-500";
+            const headerOpacity = isZenMode ? "opacity-0 pointer-events-none" : (isActive ? "opacity-30 hover:opacity-100" : "opacity-100");
+            const bgGradient = isLoveMode 
+                ? "bg-gradient-to-br from-red-900 to-rose-950 border-red-500/30" 
+                : "bg-gradient-to-br from-blue-900 to-slate-900 border-cyan-500/30";
+
+            const renderOverlay = () => {
+                if (transitionState === 'idle') return null;
+                const isGoingToLove = transitionDirection === 'toLove';
+                const animationClass = isGoingToLove ? (transitionState === 'active' ? 'love-enter' : 'love-exit') : (transitionState === 'active' ? 'normal-enter' : 'normal-exit');
+                return (
+                    <div className={`curtain-overlay ${animationClass}`}>
+                        {isGoingToLove ? (
+                            <div className="love-transition contents">
+                                <div className="curtain-layer layer-1"></div>
+                                <div className="curtain-layer layer-2"></div>
+                                <div className="curtain-layer layer-3">
+                                    <div className="heart-pulse drop-shadow-2xl flex flex-col items-center gap-4">
+                                        <Icons.Heart className="w-32 h-32 text-rose-500 fill-rose-500 filter drop-shadow-[0_0_30px_rgba(244,63,94,0.8)]" />
+                                        <span className="text-rose-400 font-black tracking-[0.5em] text-xl uppercase">Passion Mode</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="normal-transition contents">
+                                <div className="curtain-layer layer-1"></div>
+                                <div className="curtain-layer layer-2"></div>
+                                <div className="curtain-layer layer-3">
+                                    <div className="electric-pulse drop-shadow-2xl flex flex-col items-center gap-4">
+                                        <Icons.Zap className="w-32 h-32 text-cyan-400 fill-cyan-400" />
+                                        <span className="text-cyan-400 font-black tracking-[0.5em] text-xl uppercase">System Normal</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            };
+
+            return (
+                <div className="relative min-h-screen w-full flex items-center justify-center selection:bg-cyan-500/30 overflow-hidden smooth-transition-all">
+                    {/* Dynamic Base Background Color Layer */}
+                    <div className={`fixed inset-0 transition-colors duration-1000 -z-50 ${isLoveMode ? 'bg-[#1a0505]' : 'bg-[#020617]'}`}></div>
+
+                    {renderOverlay()}
+                    
+                    {/* --- FIXED FULL-SCREEN RESULT MODAL --- */}
+                    {isFinished && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                           {/* Dark Backdrop with Blur */}
+                           <div className="absolute inset-0 bg-black/80 backdrop-blur-xl animate-fadeIn"></div>
+                           
+                           {/* CONFETTI NOW OUTSIDE THE CARD FOR FULL SCREEN EFFECT */}
+                           <div className="absolute inset-0 overflow-hidden pointer-events-none z-20">
+                                <Confetti />
+                           </div>
+
+                           {/* Result Content Card - ID for Screenshot */}
+                           <div id="result-card" className="relative z-30 w-full max-w-2xl bg-[#0b1121] border border-white/10 p-8 rounded-3xl shadow-2xl animate-pop flex flex-col items-center text-center">
+                               <div className="mb-2 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/10 text-yellow-400 text-xs font-bold uppercase tracking-widest border border-yellow-400/20"><Icons.Trophy className="w-3 h-3" /> Run Complete</div>
+                               <h2 className="text-5xl font-black italic text-white mb-8 tracking-tighter">{wpm > 80 ? 'LEGENDARY' : wpm > 60 ? 'IMPRESSIVE' : 'COMPLETED'}</h2>
+                               <WpmChart history={wpmHistory} />
+                               
+                               <div className="grid grid-cols-4 gap-4 w-full mb-6">
+                                   <div className="group bg-white/5 p-4 rounded-xl flex flex-col items-center border border-white/5">
+                                       <span className="text-[10px] uppercase text-white/40 font-bold mb-1 flex items-center gap-1">WPM</span>
+                                       <span className="text-3xl font-black text-white">{wpm}</span>
+                                   </div>
+                                   <div className="group bg-white/5 p-4 rounded-xl flex flex-col items-center border border-white/5">
+                                       <span className="text-[10px] uppercase text-white/40 font-bold mb-1 flex items-center gap-1">Acc</span>
+                                       <span className={`text-3xl font-black ${accuracy >= 98 ? 'text-emerald-400' : 'text-white'}`}>{accuracy}%</span>
+                                   </div>
+                                   <div className="group bg-white/5 p-4 rounded-xl flex flex-col items-center border border-white/5">
+                                       <span className="text-[10px] uppercase text-white/40 font-bold mb-1 flex items-center gap-1">Streak</span>
+                                       <span className="text-3xl font-black text-amber-400">{maxStreak}</span>
+                                   </div>
+                                   <div className="group bg-white/5 p-4 rounded-xl flex flex-col items-center border border-white/5">
+                                       <span className="text-[10px] uppercase text-white/40 font-bold mb-1 flex items-center gap-1">Raw</span>
+                                       <span className={`text-3xl font-black ${isLoveMode ? 'text-rose-500' : 'text-purple-400'}`}>{userInput.length}</span>
+                                   </div>
+                               </div>
+
+                               {/* --- NEW WORD ACCURACY SECTION --- */}
+                               <div className="w-full bg-white/5 p-4 rounded-xl border border-white/5 mb-8 flex flex-col gap-3">
+                                    <div className="flex justify-between items-center text-xs uppercase font-bold tracking-wider">
+                                        <span className="text-white/60 flex items-center gap-2"><Icons.CheckCircle className="w-4 h-4 text-emerald-400"/> Word Accuracy</span>
+                                        <span className="text-white/40">{Math.round((wordStats.correct / (wordStats.total || 1)) * 100)}%</span>
+                                    </div>
+                                    <div className="w-full h-4 bg-black/40 rounded-full overflow-hidden flex">
+                                        <div style={{width: `${(wordStats.correct / (wordStats.total || 1)) * 100}%`}} className="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-1000"></div>
+                                        <div style={{width: `${(wordStats.wrong / (wordStats.total || 1)) * 100}%`}} className="h-full bg-gradient-to-r from-rose-600 to-rose-400 transition-all duration-1000"></div>
+                                    </div>
+                                    <div className="flex justify-between text-sm font-medium">
+                                        <span className="text-emerald-400">{wordStats.correct} Correct Words</span>
+                                        <span className="text-rose-400">{wordStats.wrong} Wrong Words</span>
+                                    </div>
+                               </div>
+                               
+                               <div className="flex flex-col gap-3 w-full max-w-sm">
+                                   <div className="grid grid-cols-2 gap-3">
+                                       <button onClick={handleScreenshot} className="glass-btn py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 text-white font-bold transition-all text-sm">
+                                           <Icons.Camera className="w-4 h-4" /> Screenshot
+                                       </button>
+                                       <button onClick={handleShare} className="glass-btn py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-white/10 text-white font-bold transition-all text-sm relative overflow-hidden">
+                                           {shareCopied ? (
+                                               <><Icons.Check className="w-4 h-4 text-emerald-400" /> <span className="text-emerald-400">Copied!</span></>
+                                           ) : (
+                                               <><Icons.Share2 className="w-4 h-4" /> Share Score</>
+                                           )}
+                                       </button>
+                                   </div>
+                                   <button onClick={() => resetGame()} className="group relative py-4 rounded-xl bg-white text-black font-black text-lg overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]">
+                                       <span className="relative z-10 flex items-center justify-center gap-2">NEXT MISSION <Icons.ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" /></span>
+                                       <div className={`absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${isLoveMode ? 'from-rose-500 via-white to-pink-500' : 'from-cyan-400 via-white to-purple-400'}`}></div>
+                                   </button>
+                               </div>
+                           </div>
+                        </div>
+                    )}
+
+                    <StatsModal isOpen={showStats} onClose={() => setShowStats(false)} stats={stats} />
+                    <DailyModal isOpen={showDaily} onClose={() => setShowDaily(false)} dailyTask={dailyTask} onStart={() => { setIsLoveMode(false); setMode(dailyTask.mode); resetGame(dailyTask.mode); setShowDaily(false); }} />
+                    <AboutModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
+
+                    <div className="absolute inset-0 z-0 pointer-events-none">
+                        {isLoveMode ? (
+                            <>
+                                <div className="absolute top-[10%] left-[20%] w-[30rem] h-[30rem] bg-red-600/20 rounded-full mix-blend-screen filter blur-[120px] animate-blob smooth-transition-all"></div>
+                                <div className="absolute top-[40%] right-[20%] w-[25rem] h-[25rem] bg-pink-600/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000 smooth-transition-all"></div>
+                            </>
+                        ) : (
+                            <>
+                                <div className="absolute top-[10%] left-[20%] w-[30rem] h-[30rem] bg-blue-600/20 rounded-full mix-blend-screen filter blur-[120px] animate-blob smooth-transition-all"></div>
+                                <div className="absolute top-[40%] right-[20%] w-[25rem] h-[25rem] bg-cyan-600/20 rounded-full mix-blend-screen filter blur-[100px] animate-blob animation-delay-2000 smooth-transition-all"></div>
+                            </>
+                        )}
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.07]"></div>
+                    </div>
+
+                    {/* --- MAIN CONTENT (Blurred when finished) --- */}
+                    <div className={`relative z-10 w-full max-w-5xl px-6 flex flex-col gap-8 animate-enter transition-all duration-500 ${isFinished ? 'blur-lg opacity-40 scale-95 pointer-events-none' : ''}`}>
+                        <header className={`flex flex-col md:flex-row items-center justify-between gap-6 transition-all duration-500 ${headerOpacity}`}>
+                            <div className="flex items-center gap-4">
+                                <div className="relative group">
+                                    <div className={`absolute inset-0 blur-lg opacity-20 group-hover:opacity-40 transition-opacity ${isLoveMode ? 'bg-red-600' : 'bg-cyan-500'} smooth-transition-all`}></div>
+                                    <div className={`w-12 h-12 rounded-2xl border-white/10 flex items-center justify-center shadow-xl relative z-10 ${bgGradient} smooth-transition-all`}>
+                                        {isLoveMode ? <Icons.Heart className="text-rose-500 smooth-transition-all" /> : <Icons.Keyboard className="text-cyan-400 smooth-transition-all" />}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h1 className="text-3xl font-black italic tracking-tighter text-white smooth-transition-all">HEMI<span className="font-light text-white/40">TYPING</span></h1>
+                                    <div className={`flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] font-bold ${isLoveMode ? 'text-rose-500/60' : 'text-cyan-400/60'} smooth-transition-all`}>
+                                        <Icons.Zap className="w-3 h-3" /> Hyper Engine V2
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col md:flex-row gap-4 items-center">
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => setShowDaily(true)} className="glass-btn w-10 h-10 rounded-xl flex items-center justify-center text-white/40 hover:text-white"><Icons.Calendar className="w-4 h-4"/></button>
+                                    <button onClick={() => setShowStats(true)} className="glass-btn w-10 h-10 rounded-xl flex items-center justify-center text-white/40 hover:text-white"><Icons.Stats className="w-4 h-4"/></button>
+                                    <button onClick={() => setShowAbout(true)} className="glass-btn w-10 h-10 rounded-xl flex items-center justify-center text-white/40 hover:text-white"><Icons.Info className="w-4 h-4"/></button>
+                                </div>
+
+                                <button onClick={toggleTheme} disabled={transitionState !== 'idle'} className={`glass-btn px-4 py-2 rounded-xl flex items-center gap-3 text-xs font-bold uppercase tracking-wide transition-all w-36 justify-center ${isLoveMode ? 'love-active text-rose-400 border-rose-500/50' : 'text-white/40 border-white/10'}`}>
+                                    <span className="mr-auto">Love Mode</span>
+                                    {isLoveMode ? <Icons.ToggleRight className="w-5 h-5 fill-rose-500/20" /> : <Icons.ToggleLeft className="w-5 h-5" />}
+                                </button>
+
+                                <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 backdrop-blur-md smooth-transition-all">
+                                    {availableModes.map(m => (
+                                        <button key={m} onClick={() => setMode(m)} disabled={transitionState !== 'idle'} className={`glass-btn px-4 py-2 rounded-lg flex items-center gap-2 text-xs font-bold uppercase tracking-wide ${mode === m ? (isLoveMode ? 'love-active' : 'active') : 'text-white/40 hover:text-white'} smooth-transition-all`}>
+                                            {m === 'flirty' && <Icons.Heart className="w-3 h-3" />} {m === 'dark' && <Icons.Ghost className="w-3 h-3" />} {m === 'seductive' && <Icons.Fire className="w-3 h-3" />}
+                                            {m === 'cruise' && <Icons.Wind className="w-3 h-3" />} {m === 'sport' && <Icons.Activity className="w-3 h-3" />} {m === 'code' && <Icons.Code className="w-3 h-3" />}
+                                            {m.charAt(0).toUpperCase() + m.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                                
+                                <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-1 bg-black/40 p-1 rounded-xl border border-white/5 backdrop-blur-md smooth-transition-all">
+                                        {[15, 30, 60].map(t => (
+                                            <button key={t} onClick={() => setDuration(t)} className={`glass-btn w-10 h-8 rounded-lg flex items-center justify-center text-xs font-bold font-mono ${duration === t ? (isLoveMode ? 'love-active' : 'active') : 'text-white/40 hover:text-white'} smooth-transition-all`}>{t}</button>
+                                        ))}
+                                    </div>
+                                    <button onClick={() => resetGame()} className="glass-btn w-10 h-10 rounded-xl flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all border border-white/5 bg-black/40 backdrop-blur-md hover:rotate-180 duration-500" title="Quick Restart"><Icons.RotateCcw className="w-4 h-4" /></button>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div className={`glass-panel rounded-[2rem] p-1 transition-all duration-300 ${shake ? 'border-red-500/50 shadow-[0_0_40px_rgba(239,68,68,0.3)] shake-anim' : (isLoveMode ? 'border-rose-900/30 love-border' : 'border-white/5 normal-border')}`}>
+                            <div className="bg-[#0b1121]/80 rounded-[1.8rem] p-8 md:p-12 min-h-[420px] flex flex-col relative overflow-hidden smooth-transition-all">
+                                <div className="absolute top-0 left-0 w-full h-[2px] bg-white/5">
+                                    <div className={`h-full shadow-[0_0_15px_rgba(34,211,238,0.8)] transition-all duration-300 ease-out ${isLoveMode ? 'bg-gradient-to-r from-rose-600 via-pink-600 to-rose-900' : 'bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500'}`} style={{ width: `${progress}%` }} />
+                                </div>
+
+                                <div className="flex justify-between items-start mb-12 relative z-20">
+                                    <div className="flex gap-16">
+                                        <div className="group">
+                                            <div className={`text-[10px] uppercase font-bold tracking-widest mb-1 transition-colors ${isLoveMode ? 'text-rose-500/50 group-hover:text-rose-500' : 'text-cyan-400/50 group-hover:text-cyan-400'}`}>Speed</div>
+                                            <div className="flex items-baseline gap-1"><span className="text-6xl font-black italic tracking-tighter text-white">{wpm}</span><span className="text-sm font-bold text-white/30">WPM</span></div>
+                                        </div>
+                                        <div className="group">
+                                            <div className={`text-[10px] uppercase font-bold tracking-widest mb-1 transition-colors ${isLoveMode ? 'text-rose-500/50 group-hover:text-rose-500' : 'text-cyan-400/50 group-hover:text-cyan-400'}`}>Timer</div>
+                                            <div className="flex items-baseline gap-1"><span className={`text-6xl font-black tracking-tighter tabular-nums ${timeLeft < 10 ? 'text-red-400' : 'text-white/80'}`}>{timeLeft}</span><span className="text-sm font-bold text-white/30">s</span></div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-6">
+                                        <div className="text-right">
+                                            <div className="flex items-center justify-end gap-2 text-[10px] uppercase text-white/30 font-bold tracking-widest mb-1"><Icons.Flame className={`w-3 h-3 ${streak > 0 ? getStreakColor() : ''}`} /> Streak</div>
+                                            <div className={`text-3xl font-black italic transition-all duration-300 ${getStreakColor()} ${streak > 10 ? 'scale-110' : ''}`}>{streak}x</div>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => setIsZenMode(!isZenMode)} className="text-white/20 hover:text-white transition-colors">{isZenMode ? <Icons.EyeOff className="w-5 h-5"/> : <Icons.Eye className="w-5 h-5"/>}</button>
+                                            <button onClick={() => setSoundEnabled(!soundEnabled)} className="text-white/20 hover:text-white transition-colors">{soundEnabled ? <Icons.Volume2 className="w-5 h-5" /> : <Icons.VolumeX className="w-5 h-5" />}</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 flex flex-col justify-center relative outline-none z-10 text-left" onClick={() => inputRef.current?.focus()}>
+                                    <input ref={inputRef} type="text" className="absolute opacity-0 top-0 left-0 w-full h-full cursor-default z-50" value={userInput} onChange={handleChange} autoFocus disabled={isFinished || !text} autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" data-gramm="false" />
+                                    <div className={`relative transition-all duration-500 ${isActive ? 'scale-105' : 'scale-100'} ${mode === 'code' ? 'font-mono text-2xl md:text-3xl font-bold leading-relaxed' : 'font-sans font-black text-3xl md:text-5xl leading-tight'} tracking-wide whitespace-pre-wrap break-words max-w-full`}>{renderText()}</div>
+                                    
+                                    {!isActive && !isFinished && userInput.length === 0 && (
+                                        <div className={`absolute bottom-4 left-0 right-0 flex justify-center text-sm font-mono animate-pulse ${isLoveMode ? 'text-rose-500/40' : 'text-cyan-500/40'}`}><span>&gt; Click or Type to Ignite...</span></div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className={`flex justify-between text-xs text-white/20 uppercase font-bold tracking-widest ${uiOpacity}`}>
+                            <div>Ctrl + A to Quick Restart</div>
+                            <div className="flex gap-4">
+                                <span>High Score: <span className="text-white/50">{highScore}</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<HemiTyping />);
+    </script>
+</body>
+</html>
