@@ -9,7 +9,7 @@ export default defineConfig({
   base: '/HemiTyping/dist/',
   build: {
     rollupOptions: {
-      input: resolve(__dirname, 'src/index.html')
+      input: resolve(__dirname, 'app.html')
     }
   }
 })
