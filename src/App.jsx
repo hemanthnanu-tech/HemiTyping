@@ -145,7 +145,7 @@ export default function App() {
         resetState();
     };
 
-    const resetState = () => {
+    const resetState = (newDuration) => {
         setUserInput("");
         setStartTime(null);
         setEndTime(null);
@@ -154,7 +154,7 @@ export default function App() {
         setTotalKeystrokes(0);
         setCorrectKeystrokes(0);
         setMissedChars({});
-        setTimeLeft(duration);
+        setTimeLeft(newDuration || duration);
         setIsActive(false);
         setIsFinished(false);
         setFinishState('none');
@@ -416,7 +416,7 @@ export default function App() {
                                 {[15, 30, 60].map(d => (
                                     <button 
                                         key={d}
-                                        onClick={() => {setDuration(d); setTimeLeft(d); resetState();}}
+                                        onClick={() => {setDuration(d); resetState(d);}}
                                         className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${duration === d ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
                                     >
                                         {d}s
@@ -428,7 +428,7 @@ export default function App() {
                             
                             {/* Small Reset Button */}
                             <button 
-                                onClick={resetState}
+                                onClick={() => resetState()}
                                 className={`p-2 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-blue-500/10 transition-colors focus:outline-none ${isActive ? 'rotate-180' : ''}`}
                                 title="Restart"
                             >
@@ -571,7 +571,7 @@ export default function App() {
                                     You didn't complete the text before the clock ran out.
                                 </p>
                                 <button 
-                                    onClick={resetState}
+                                    onClick={() => resetState()}
                                     className="px-10 py-5 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black tracking-[0.2em] uppercase transition-all duration-300 shadow-2xl shadow-red-500/40 hover:-translate-y-1 relative z-10"
                                 >
                                     Try Again
