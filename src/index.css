@@ -44,7 +44,7 @@ body {
   color: var(--color-text-dark);
 }
 
-/* Ultra Premium Background Aura */
+/* Ultra Premium Bright Aura */
 .bg-aura {
   position: fixed;
   top: 0;
@@ -54,18 +54,18 @@ body {
   z-index: -1;
   pointer-events: none;
   background-image: 
-    radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 40%),
-    radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 40%);
-  filter: blur(80px);
-  animation: aura-shift 20s ease-in-out infinite alternate;
+    radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 50%);
+  filter: blur(60px);
+  animation: aura-shift 15s ease-in-out infinite alternate;
   opacity: 1;
   transition: opacity 0.5s ease;
 }
 
 .dark .bg-aura {
   background-image: 
-    radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15), transparent 40%),
-    radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 40%);
+    radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.25), transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.25), transparent 50%);
 }
 
 @keyframes aura-shift {
@@ -77,8 +77,8 @@ body {
 /* Glassmorphism Panel */
 .glass-panel {
   background: var(--color-glass-light);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
   border: 1px solid var(--color-border-light);
   box-shadow: 0 4px 40px rgba(0, 0, 0, 0.05);
   transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
@@ -87,34 +87,34 @@ body {
 .dark .glass-panel {
   background: var(--color-glass-dark);
   border-color: var(--color-border-dark);
-  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 40px rgba(0, 0, 0, 0.4);
 }
 
 .glass-panel:hover {
-  box-shadow: 0 8px 50px rgba(59, 130, 246, 0.08);
+  box-shadow: 0 8px 60px rgba(59, 130, 246, 0.1);
 }
 .dark .glass-panel:hover {
-  box-shadow: 0 8px 50px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 8px 60px rgba(59, 130, 246, 0.2);
 }
 
 /* Active State */
 .typing-active .glass-panel {
-  border-color: rgba(59, 130, 246, 0.3);
-  box-shadow: 0 0 50px rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 0 70px rgba(59, 130, 246, 0.15);
 }
 .dark .typing-active .glass-panel {
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 0 50px rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 70px rgba(59, 130, 246, 0.25);
 }
 
-/* Error State: Red Glow */
+/* Error Glow - Entire Panel */
 .error-glow {
-  border-color: rgba(239, 68, 68, 0.5) !important;
-  box-shadow: 0 0 60px rgba(239, 68, 68, 0.2) !important;
+  border-color: rgba(239, 68, 68, 0.6) !important;
+  box-shadow: 0 0 80px rgba(239, 68, 68, 0.3) !important;
   animation: subtle-shake 0.3s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 .dark .error-glow {
-  box-shadow: 0 0 60px rgba(239, 68, 68, 0.3) !important;
+  box-shadow: 0 0 80px rgba(239, 68, 68, 0.4) !important;
 }
 
 @keyframes subtle-shake {
@@ -123,24 +123,68 @@ body {
   75% { transform: translateX(2px); }
 }
 
-/* Caret */
-.caret {
-  border-left: 2px solid var(--color-primary);
+/* Smooth Caret */
+.smooth-caret {
+  position: absolute;
+  width: 3px;
+  height: 1.2em;
+  background-color: var(--color-primary);
+  border-radius: 2px;
+  transition: left 0.1s cubic-bezier(0.4, 0, 0.2, 1), top 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   animation: blink 1s step-end infinite;
-  margin-left: -2px;
-  position: relative;
-  z-index: 10;
 }
-.dark .caret {
-  box-shadow: -2px 0 8px rgba(59, 130, 246, 0.5);
+
+.dark .smooth-caret {
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
 }
-.typing-active .caret {
+
+.typing-active .smooth-caret {
   animation: none;
+}
+
+/* Ghost Caret */
+.ghost-caret {
+  position: absolute;
+  width: 3px;
+  height: 1.2em;
+  background-color: rgba(163, 163, 163, 0.3);
+  border-radius: 2px;
+  transition: left 0.1s linear, top 0.1s linear;
 }
 
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
+}
+
+/* Character states */
+.char-correct {
+  color: var(--color-text-light);
+  font-weight: 700;
+}
+.dark .char-correct {
+  color: var(--color-text-dark);
+}
+
+.char-incorrect {
+  color: var(--color-error);
+  text-decoration: underline;
+  text-decoration-color: rgba(239, 68, 68, 0.5);
+  font-weight: 700;
+}
+
+.char-untyped {
+  color: #a3a3a3;
+}
+.dark .char-untyped {
+  color: #525252;
+}
+
+/* Ultra Zen Focus Mode */
+.zen-active .word-unfocused {
+  opacity: 0.1;
+  filter: blur(2px);
+  transition: all 0.3s ease;
 }
 
 /* Custom Scrollbar */
@@ -163,4 +207,20 @@ body {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Animated Credits Text */
+.animate-gradient-text {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6, #ec4899, #3b82f6);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: gradient-flow 3s linear infinite;
+}
+
+@keyframes gradient-flow {
+  to {
+    background-position: 200% center;
+  }
 }
