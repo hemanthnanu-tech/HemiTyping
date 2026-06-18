@@ -1,44 +1,55 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 
 export const Confetti = () => {
-    const canvasRef = useRef(null);
-    
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        
-        let particles = [];
-        for(let i=0; i<100; i++) {
-            particles.push({
-                x: canvas.width/2,
-                y: canvas.height/2,
-                vx: (Math.random() - 0.5) * 20,
-                vy: (Math.random() - 0.5) * 20,
-                size: Math.random() * 5 + 2,
-                color: `hsl(${Math.random() * 360}, 70%, 50%)`,
-                life: 100
-            });
-        }
+    const [particles, setParticles] = useState([]);
 
-        const render = () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles = particles.filter(p => p.life > 0);
-            particles.forEach(p => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.2; // gravity
-                p.life--;
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-                ctx.fill();
-            });
-            if(particles.length > 0) requestAnimationFrame(render);
-        };
-        render();
+    useEffect(() => {
+        const colors = ['#22d3ee', '#10b981', '#0ea5e9']; // Cyan, Emerald, Sky Blue
+        const newParticles = Array.from({ length: 40 }).map((_, i) => ({
+            id: i,
+            x: Math.random() * 100, // vw
+            y: -10 - Math.random() * 20, // vh
+            size: Math.random() * 4 + 2, // px
+            color: colors[Math.floor(Math.random() * colors.length)],
+            speedY: Math.random() * 1.5 + 1,
+            speedX: (Math.random() - 0.5) * 0.5,
+            opacity: Math.random() * 0.5 + 0.5
+        }));
+        
+        setParticles(newParticles);
+
+        const interval = setInterval(() => {
+            setParticles(prev => prev.map(p => ({
+                ...p,
+                y: p.y + p.speedY,
+                x: p.x + p.speedX,
+                opacity: p.y > 90 ? p.opacity - 0.05 : p.opacity
+            })).filter(p => p.opacity > 0));
+        }, 16); // ~60fps
+
+        return () => clearInterval(interval);
     }, []);
-    
-    return <canvas ref={canvasRef} className="absolute inset-0 z-0 pointer-events-none" />;
+
+    if (particles.length === 0) return null;
+
+    return (
+        <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
+            {particles.map(p => (
+                <div
+                    key={p.id}
+                    style={{
+                        position: 'absolute',
+                        left: `${p.x}vw`,
+                        top: `${p.y}vh`,
+                        width: `${p.size}px`,
+                        height: `${p.size}px`,
+                        backgroundColor: p.color,
+                        opacity: p.opacity,
+                        borderRadius: '50%',
+                        boxShadow: `0 0 ${p.size * 2}px ${p.color}`,
+                    }}
+                />
+            ))}
+        </div>
+    );
 };

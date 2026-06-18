@@ -3,45 +3,46 @@ import { Icons } from './components/Icons';
 import { Confetti } from './components/Confetti';
 import { WpmChart } from './components/WpmChart';
 import { StatsModal, DailyModal, AboutModal } from './components/Modals';
-import { NORMAL_DATA, LOVE_DATA } from './data/constants';
+import { DATA_SETS } from './data/constants';
 import { playSound } from './utils/audio';
 
-function App() {
-    const [isLoveMode, setIsLoveMode] = useState(false);
-    const [isZenMode, setIsZenMode] = useState(false);
-    const [transitionState, setTransitionState] = useState('idle');
-    const [transitionDirection, setTransitionDirection] = useState('toLove');
-    const [mode, setMode] = useState('cruise');
-    const [duration, setDuration] = useState(30);
-    const [userInput, setUserInput] = useState("");
+export default function App() {
     const [text, setText] = useState("");
+    const [userInput, setUserInput] = useState("");
+    const [startTime, setStartTime] = useState(null);
+    const [endTime, setEndTime] = useState(null);
+    const [wpm, setWpm] = useState(0);
+    const [accuracy, setAccuracy] = useState(100);
+    const [mode, setMode] = useState("javascript");
+    const [duration, setDuration] = useState(30);
     const [timeLeft, setTimeLeft] = useState(30);
     const [isActive, setIsActive] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
-    const [wpm, setWpm] = useState(0);
-    const [accuracy, setAccuracy] = useState(100);
     const [streak, setStreak] = useState(0);
-    const [maxStreak, setMaxStreak] = useState(0);
-    const [highScore, setHighScore] = useState(0);
-    const [shake, setShake] = useState(false);
-    const [soundEnabled, setSoundEnabled] = useState(true);
-    const [lastTextIndex, setLastTextIndex] = useState(-1);
     const [wpmHistory, setWpmHistory] = useState([]);
-    const [stats, setStats] = useState({ totalRuns: 0, avgWpm: 0, bestWpm: 0, totalChars: 0, history: [] });
-    const [dailyTask, setDailyTask] = useState({ mode: 'cruise', targetWpm: 60, completed: false });
     
+    // UI State
     const [showStats, setShowStats] = useState(false);
     const [showDaily, setShowDaily] = useState(false);
     const [showAbout, setShowAbout] = useState(false);
+    const [soundEnabled, setSoundEnabled] = useState(true);
+    const [isZenMode, setIsZenMode] = useState(false);
+    const [errorShake, setErrorShake] = useState(false);
+    const [showConfetti, setShowConfetti] = useState(false);
+
+    // Persistent Stats
+    const [stats, setStats] = useState({ totalRuns: 0, avgWpm: 0, bestWpm: 0, totalChars: 0, history: [] });
 
     const inputRef = useRef(null);
+    const timerRef = useRef(null);
+    const typingContainerRef = useRef(null);
 
     // Init and load stats
     useEffect(() => {
-        const savedStats = localStorage.getItem('hemiStats');
+        const savedStats = localStorage.getItem('hemiStats_v2');
         if (savedStats) setStats(JSON.parse(savedStats));
         
-        const savedSettings = localStorage.getItem('hemiSettings');
+        const savedSettings = localStorage.getItem('hemiSettings_v2');
         if (savedSettings) {
             const settings = JSON.parse(savedSettings);
             if (settings.soundEnabled !== undefined) setSoundEnabled(settings.soundEnabled);
@@ -49,201 +50,151 @@ function App() {
         }
 
         generateText(mode);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Timer logic
-    useEffect(() => {
-        let interval = null;
-        if (isActive && timeLeft > 0) {
-            interval = setInterval(() => {
-                setTimeLeft(time => time - 1);
-            }, 1000);
-        } else if (timeLeft === 0 && isActive) {
-            finishTest();
-        }
-        return () => clearInterval(interval);
-    }, [isActive, timeLeft]);
+    const saveStats = (newStats) => {
+        setStats(newStats);
+        localStorage.setItem('hemiStats_v2', JSON.stringify(newStats));
+    };
 
-    // Keep focus on input unless finished
-    useEffect(() => {
-        const handleKeyDown = () => {
-            if (!isFinished && inputRef.current) {
-                inputRef.current.focus();
-            }
-        };
-        document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [isFinished]);
+    const toggleSound = () => {
+        const newSound = !soundEnabled;
+        setSoundEnabled(newSound);
+        localStorage.setItem('hemiSettings_v2', JSON.stringify({ soundEnabled: newSound, isZenMode }));
+    };
+
+    const toggleZen = () => {
+        const newZen = !isZenMode;
+        setIsZenMode(newZen);
+        localStorage.setItem('hemiSettings_v2', JSON.stringify({ soundEnabled, isZenMode: newZen }));
+    };
 
     const generateText = (currentMode) => {
-        const dataSource = isLoveMode ? LOVE_DATA : NORMAL_DATA;
-        const dataArray = dataSource[currentMode] || dataSource['cruise'];
-        let newIndex;
-        do {
-            newIndex = Math.floor(Math.random() * dataArray.length);
-        } while (newIndex === lastTextIndex && dataArray.length > 1);
-        setLastTextIndex(newIndex);
-        setText(dataArray[newIndex]);
+        const data = DATA_SETS[currentMode] || DATA_SETS.javascript;
+        const randomSentences = Array.from({length: 5}, () => data[Math.floor(Math.random() * data.length)]).join(' ');
+        setText(randomSentences);
+        resetState();
     };
 
-    const handleInput = (e) => {
-        if (!isActive && !isFinished && e.target.value.length > 0) {
-            setIsActive(true);
-        }
-        
-        const value = e.target.value;
-        if (value.length > text.length) return;
-        
-        const isBackspace = value.length < userInput.length;
-        
-        if (!isBackspace && value.length > 0) {
-            const lastCharIndex = value.length - 1;
-            if (value[lastCharIndex] !== text[lastCharIndex]) {
-                if (soundEnabled) playSound('error');
-                setShake(true);
-                setTimeout(() => setShake(false), 300);
-                setStreak(0);
-            } else {
-                if (soundEnabled) playSound('click');
-                setStreak(s => {
-                    const newStreak = s + 1;
-                    if (newStreak % 10 === 0 && soundEnabled) playSound('streak');
-                    setMaxStreak(m => Math.max(m, newStreak));
-                    return newStreak;
-                });
-            }
-        }
-        
-        setUserInput(value);
-        calculateMetrics(value);
-
-        if (value.length === text.length) {
-            finishTest(value);
-        }
-    };
-
-    const calculateMetrics = (currentInput) => {
-        let correctChars = 0;
-        for (let i = 0; i < currentInput.length; i++) {
-            if (currentInput[i] === text[i]) correctChars++;
-        }
-        
-        const currentAccuracy = currentInput.length > 0 ? Math.round((correctChars / currentInput.length) * 100) : 100;
-        setAccuracy(currentAccuracy);
-        
-        const timeElapsed = duration - timeLeft;
-        if (timeElapsed > 0) {
-            const currentWpm = Math.round((correctChars / 5) / (timeElapsed / 60));
-            setWpm(currentWpm);
-            if (timeElapsed % 2 === 0) {
-                setWpmHistory(prev => [...prev, currentWpm].slice(-20));
-            }
-        }
-    };
-
-    const finishTest = (finalInput = userInput) => {
-        setIsActive(false);
-        setIsFinished(true);
-        if (soundEnabled) playSound('finish');
-        
-        let correctChars = 0;
-        for (let i = 0; i < finalInput.length; i++) {
-            if (finalInput[i] === text[i]) correctChars++;
-        }
-        
-        const timeElapsed = duration - timeLeft || 1;
-        const finalWpm = Math.round((correctChars / 5) / (timeElapsed / 60));
-        setWpm(finalWpm);
-        
-        const newStats = {
-            totalRuns: stats.totalRuns + 1,
-            avgWpm: Math.round(((stats.avgWpm * stats.totalRuns) + finalWpm) / (stats.totalRuns + 1)),
-            bestWpm: Math.max(stats.bestWpm, finalWpm),
-            totalChars: stats.totalChars + finalInput.length,
-            history: [...stats.history, finalWpm].slice(-100)
-        };
-        setStats(newStats);
-        localStorage.setItem('hemiStats', JSON.stringify(newStats));
-        setHighScore(Math.max(highScore, finalWpm));
-
-        if (!dailyTask.completed && mode === dailyTask.mode && finalWpm >= dailyTask.targetWpm) {
-            setDailyTask({ ...dailyTask, completed: true });
-        }
-    };
-
-    const restartTest = () => {
+    const resetState = () => {
         setUserInput("");
+        setStartTime(null);
+        setEndTime(null);
+        setWpm(0);
+        setAccuracy(100);
         setTimeLeft(duration);
         setIsActive(false);
         setIsFinished(false);
-        setWpm(0);
-        setAccuracy(100);
-        setStreak(0);
-        setMaxStreak(0);
         setWpmHistory([]);
-        generateText(mode);
+        setShowConfetti(false);
+        clearInterval(timerRef.current);
         if (inputRef.current) inputRef.current.focus();
+    };
+
+    const handleInput = (e) => {
+        if (isFinished) return;
+        
+        const value = e.target.value;
+        const isCorrect = text.startsWith(value);
+
+        if (!isActive && value.length === 1) {
+            setIsActive(true);
+            setStartTime(Date.now());
+            timerRef.current = setInterval(() => {
+                setTimeLeft((prev) => {
+                    if (prev <= 1) {
+                        endTest();
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+                
+                // Real-time WPM calc
+                const timeElapsed = (Date.now() - (startTime || Date.now())) / 60000;
+                if (timeElapsed > 0) {
+                    const words = userInput.length / 5;
+                    setWpmHistory(prev => [...prev, Math.round(words / timeElapsed)]);
+                }
+            }, 1000);
+        }
+
+        if (isCorrect) {
+            setUserInput(value);
+            if (soundEnabled) playSound(140 + value.length * 2, 'sine', 0.01);
+            if (value === text) {
+                endTest();
+            }
+        } else {
+            setErrorShake(true);
+            setStreak(0);
+            if (soundEnabled) playSound(100, 'sawtooth', 0.1);
+            setTimeout(() => setErrorShake(false), 400);
+            
+            // Calculate accuracy drop
+            const correctChars = userInput.length;
+            const totalAttempts = correctChars + 1;
+            setAccuracy(Math.max(0, Math.floor((correctChars / totalAttempts) * 100)));
+        }
+    };
+
+    const endTest = () => {
+        clearInterval(timerRef.current);
+        setIsActive(false);
+        setIsFinished(true);
+        const finalTime = Date.now();
+        setEndTime(finalTime);
+
+        const timeElapsed = (finalTime - startTime) / 60000; // in minutes
+        const words = userInput.length / 5;
+        const finalWpm = Math.round(words / timeElapsed);
+        
+        setWpm(finalWpm || 0);
+
+        // Update Global Stats
+        const newRuns = stats.totalRuns + 1;
+        const newAvg = Math.round(((stats.avgWpm * stats.totalRuns) + finalWpm) / newRuns);
+        const newBest = Math.max(stats.bestWpm, finalWpm);
+        
+        saveStats({
+            totalRuns: newRuns,
+            avgWpm: newAvg,
+            bestWpm: newBest,
+            totalChars: stats.totalChars + userInput.length,
+            history: [...stats.history, { date: Date.now(), wpm: finalWpm, acc: accuracy, mode }].slice(-50)
+        });
+
+        if (finalWpm > stats.bestWpm && finalWpm > 0) {
+            setShowConfetti(true);
+            if (soundEnabled) playSound(440, 'sine', 0.5); // Success chime
+        }
     };
 
     const handleModeChange = (newMode) => {
         setMode(newMode);
-        restartTest();
+        generateText(newMode);
     };
 
     const handleDurationChange = (newDuration) => {
         setDuration(newDuration);
-        restartTest();
-    };
-
-    const toggleTheme = () => {
-        setTransitionDirection(isLoveMode ? 'toNormal' : 'toLove');
-        setTransitionState('active');
-        
-        setTimeout(() => {
-            setIsLoveMode(!isLoveMode);
-            setMode(!isLoveMode ? 'flirty' : 'cruise'); 
-            restartTest();
-        }, 400);
-
-        setTimeout(() => {
-            setTransitionState('exit');
-            setTimeout(() => {
-                setTransitionState('idle');
-            }, 800);
-        }, 1200);
-    };
-
-    const toggleZenMode = () => {
-        setIsZenMode(!isZenMode);
-        localStorage.setItem('hemiSettings', JSON.stringify({ soundEnabled, isZenMode: !isZenMode }));
-    };
-
-    const toggleSound = () => {
-        setSoundEnabled(!soundEnabled);
-        localStorage.setItem('hemiSettings', JSON.stringify({ soundEnabled: !soundEnabled, isZenMode }));
+        setTimeLeft(newDuration);
+        resetState();
     };
 
     const renderCharacters = () => {
         return text.split('').map((char, index) => {
-            let colorClass = "text-white/40";
-            let bgClass = "";
-            let animClass = "";
-            
+            let color = 'text-slate-500'; // Default gray
+            let isCurrent = false;
+
             if (index < userInput.length) {
-                if (char === userInput[index]) {
-                    colorClass = isLoveMode ? "text-rose-400" : "text-cyan-400";
-                } else {
-                    colorClass = "text-red-500";
-                    bgClass = "bg-red-500/20";
-                }
-            } else if (index === userInput.length && (isActive || !isFinished)) {
-                colorClass = "text-white";
-                animClass = "cursor-blink";
-                bgClass = isLoveMode ? "border-b-2 border-rose-400" : "border-b-2 border-cyan-400";
+                color = 'text-cyan-400 font-semibold'; // Correctly typed
+            } else if (index === userInput.length) {
+                color = 'text-slate-300';
+                isCurrent = true;
             }
 
             return (
-                <span key={index} className={`${colorClass} ${bgClass} ${animClass} transition-colors duration-100 font-mono text-2xl lg:text-3xl`}>
+                <span key={index} className={`${color} ${isCurrent ? 'caret' : ''} transition-colors duration-75`}>
                     {char}
                 </span>
             );
@@ -251,179 +202,146 @@ function App() {
     };
 
     return (
-        <div className={`min-h-screen flex flex-col items-center justify-center relative overflow-hidden transition-colors duration-1000 ${isLoveMode ? 'bg-[#1a0f14]' : 'bg-[#030712]'}`}>
+        <div className="min-h-screen relative flex flex-col items-center justify-center p-4 selection:bg-cyan-500/30 overflow-hidden font-sans text-slate-200">
+            {showConfetti && <Confetti />}
             
-            <div className={`absolute top-0 left-0 w-full h-full opacity-30 pointer-events-none transition-opacity duration-1000`}>
-                <div className={`absolute top-[-10%] left-[-10%] w-96 h-96 rounded-full blur-[100px] animate-blob ${isLoveMode ? 'bg-rose-600/30' : 'bg-cyan-600/30'}`}></div>
-                <div className={`absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] animate-blob animation-delay-2000 ${isLoveMode ? 'bg-purple-600/20' : 'bg-blue-600/20'}`}></div>
-            </div>
+            {/* Minimal Background Glows */}
+            <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] animate-pulse-glow bg-cyan-600/10 z-0"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[120px] animate-pulse-glow bg-emerald-600/10 z-0" style={{ animationDelay: '2s' }}></div>
 
-            {(transitionState === 'active' || transitionState === 'exit') && (
-                <div className={`curtain-overlay ${transitionDirection === 'toLove' ? 'love-transition' : 'normal-transition'} ${transitionState}`}>
-                    <div className="curtain-layer layer-1"></div>
-                    <div className="curtain-layer layer-2"></div>
-                    <div className="curtain-layer layer-3">
-                        {transitionDirection === 'toLove' ? 
-                            <Icons.Heart className="w-16 h-16 text-rose-400 heart-pulse" /> : 
-                            <Icons.Zap className="w-16 h-16 text-cyan-400 electric-pulse" />
-                        }
-                    </div>
-                </div>
-            )}
-
-            <nav className={`w-full max-w-5xl px-6 py-4 flex justify-between items-center z-10 transition-opacity duration-500 ${isZenMode && isActive ? 'opacity-0' : 'opacity-100'}`}>
-                <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${isLoveMode ? 'bg-rose-500/20 text-rose-400' : 'bg-cyan-500/20 text-cyan-400'}`}>
-                        {isLoveMode ? <Icons.Heart className="w-6 h-6" /> : <Icons.Zap className="w-6 h-6" />}
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-                            HemiTyping 
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold tracking-widest ${isLoveMode ? 'bg-rose-500/20 text-rose-300' : 'bg-cyan-500/20 text-cyan-300'}`}>
-                                {isLoveMode ? 'LUST' : 'HYPER'}
-                            </span>
-                        </h1>
-                    </div>
-                </div>
+            <div className="z-10 w-full max-w-5xl">
                 
-                <div className="flex gap-2">
-                    <button onClick={() => setShowDaily(true)} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-colors" title="Daily Task">
-                        <Icons.Calendar className="w-5 h-5" />
-                    </button>
-                    <button onClick={() => setShowStats(true)} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-colors" title="Stats">
-                        <Icons.Stats className="w-5 h-5" />
-                    </button>
-                    <button onClick={toggleSound} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-colors" title="Toggle Sound">
-                        {soundEnabled ? <Icons.Volume2 className="w-5 h-5" /> : <Icons.VolumeX className="w-5 h-5" />}
-                    </button>
-                    <button onClick={toggleZenMode} className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-colors" title="Toggle Zen Mode">
-                        {isZenMode ? <Icons.EyeOff className="w-5 h-5" /> : <Icons.Eye className="w-5 h-5" />}
-                    </button>
-                    <button onClick={toggleTheme} className={`p-2 rounded-lg transition-colors ${isLoveMode ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30' : 'bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30'}`} title="Change Theme">
-                        {isLoveMode ? <Icons.Heart className="w-5 h-5" /> : <Icons.Flame className="w-5 h-5" />}
-                    </button>
-                </div>
-            </nav>
-
-            <main className="flex-1 w-full max-w-4xl px-6 flex flex-col justify-center relative z-10">
-                <div className={`flex justify-between items-end mb-6 transition-opacity duration-500 ${isZenMode && isActive ? 'opacity-0' : 'opacity-100'}`}>
-                    <div className="flex gap-2 bg-black/40 p-1.5 rounded-xl border border-white/5 backdrop-blur-md">
-                        {Object.keys(isLoveMode ? LOVE_DATA : NORMAL_DATA).map(m => (
-                            <button 
-                                key={m}
-                                onClick={() => handleModeChange(m)}
-                                className={`px-4 py-1.5 text-sm font-medium rounded-lg capitalize transition-all ${mode === m ? (isLoveMode ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/30' : 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/30') : 'text-white/50 hover:text-white hover:bg-white/10'}`}
-                            >
-                                {m}
-                            </button>
-                        ))}
+                {/* Header */}
+                <header className={`flex justify-between items-center mb-12 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg shadow-lg shadow-cyan-500/20">
+                            <Icons.Terminal className="text-white w-6 h-6" />
+                        </div>
+                        <h1 className="text-2xl font-bold tracking-tight">HemiTyping <span className="text-xs bg-slate-800 text-cyan-400 px-2 py-1 rounded-full ml-2 border border-slate-700">DEV</span></h1>
                     </div>
+
+                    <div className="flex gap-2">
+                        <button onClick={() => setShowDaily(true)} className="p-2.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors" title="Daily Tasks">
+                            <Icons.Calendar className="w-5 h-5" />
+                        </button>
+                        <button onClick={() => setShowStats(true)} className="p-2.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors" title="Statistics">
+                            <Icons.Stats className="w-5 h-5" />
+                        </button>
+                        <button onClick={toggleSound} className="p-2.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition-colors" title="Toggle Sound">
+                            {soundEnabled ? <Icons.Volume2 className="w-5 h-5" /> : <Icons.VolumeX className="w-5 h-5" />}
+                        </button>
+                        <button onClick={toggleZen} className={`p-2.5 rounded-lg hover:bg-slate-800 transition-colors ${isZenMode ? 'text-cyan-400' : 'text-slate-400'}`} title="Zen Mode">
+                            {isZenMode ? <Icons.EyeOff className="w-5 h-5" /> : <Icons.Eye className="w-5 h-5" />}
+                        </button>
+                    </div>
+                </header>
+
+                {/* Main Typing Area */}
+                <div className={`transition-all duration-700 transform ${isFinished ? '-translate-y-4' : 'translate-y-0'}`}>
                     
-                    <div className="flex gap-2 bg-black/40 p-1.5 rounded-xl border border-white/5 backdrop-blur-md">
-                        {[15, 30, 60].map(t => (
-                            <button 
-                                key={t}
-                                onClick={() => handleDurationChange(t)}
-                                className={`px-3 py-1.5 text-sm font-medium rounded-lg flex items-center gap-1 transition-all ${duration === t ? (isLoveMode ? 'text-rose-400 bg-rose-500/20' : 'text-cyan-400 bg-cyan-500/20') : 'text-white/50 hover:text-white hover:bg-white/10'}`}
-                            >
-                                <Icons.Clock className="w-3.5 h-3.5" /> {t}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className={`glass-panel p-8 md:p-12 transition-transform duration-300 ${shake ? 'shake-anim' : ''} ${isLoveMode ? 'love-border' : 'normal-border'}`}>
-                    <div className="flex justify-between mb-8">
-                        <div className="flex gap-6">
-                            <div>
-                                <div className="text-[10px] text-white/50 uppercase tracking-widest font-bold">WPM</div>
-                                <div className={`text-4xl font-black font-mono transition-colors ${wpm > 80 ? (isLoveMode ? 'text-rose-400' : 'text-amber-400') : 'text-white'}`}>{wpm}</div>
-                            </div>
-                            <div>
-                                <div className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Accuracy</div>
-                                <div className="text-4xl font-black font-mono text-white/90">{accuracy}%</div>
-                            </div>
+                    {/* Controls */}
+                    <div className={`flex flex-wrap justify-between items-center mb-6 gap-4 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+                        <div className="flex gap-2 p-1.5 bg-slate-800/50 rounded-xl backdrop-blur-sm border border-slate-700/50">
+                            {['prose', 'javascript', 'python', 'terminal'].map(m => (
+                                <button 
+                                    key={m}
+                                    onClick={() => handleModeChange(m)}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 capitalize ${mode === m ? 'bg-cyan-500 text-white shadow-md shadow-cyan-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}
+                                >
+                                    {m}
+                                </button>
+                            ))}
                         </div>
-                        <div className="text-right">
-                            <div className="text-[10px] text-white/50 uppercase tracking-widest font-bold">Time</div>
-                            <div className={`text-4xl font-black font-mono ${timeLeft < 10 && isActive ? 'text-red-400 animate-pulse' : 'text-white'}`}>{timeLeft}s</div>
+                        <div className="flex gap-2 p-1.5 bg-slate-800/50 rounded-xl backdrop-blur-sm border border-slate-700/50">
+                            {[15, 30, 60].map(d => (
+                                <button 
+                                    key={d}
+                                    onClick={() => handleDurationChange(d)}
+                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-1 ${duration === d ? 'text-cyan-400 bg-slate-700/50' : 'text-slate-400 hover:text-slate-200'}`}
+                                >
+                                    <Icons.Clock className="w-4 h-4" /> {d}
+                                </button>
+                            ))}
                         </div>
                     </div>
 
-                    <input 
-                        ref={inputRef}
-                        type="text" 
-                        value={userInput}
-                        onChange={handleInput}
-                        disabled={isFinished}
-                        className="absolute opacity-0 w-0 h-0"
-                        autoFocus
-                        autoComplete="off"
-                        autoCorrect="off"
-                        autoCapitalize="off"
-                        spellCheck="false"
-                    />
+                    {/* Typing Container */}
+                    <div 
+                        ref={typingContainerRef}
+                        className={`relative glass-panel rounded-3xl p-8 md:p-12 mb-8 ${isActive ? 'typing-active' : ''} ${errorShake ? 'animate-error-shake border-red-500/50' : ''}`}
+                        onClick={() => inputRef.current?.focus()}
+                    >
+                        {/* Live Stats Header inside Glass */}
+                        <div className="flex justify-between items-end mb-8 font-mono">
+                            <div className="flex gap-8">
+                                <div>
+                                    <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">WPM</div>
+                                    <div className="text-4xl font-bold text-cyan-400">{isActive ? Math.round((userInput.length / 5) / ((Date.now() - startTime) / 60000)) || 0 : wpm}</div>
+                                </div>
+                                <div>
+                                    <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Accuracy</div>
+                                    <div className="text-4xl font-bold text-slate-200">{accuracy}%</div>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-1">Time</div>
+                                <div className={`text-4xl font-bold ${timeLeft <= 10 && isActive ? 'text-red-400' : 'text-slate-200'}`}>{timeLeft}s</div>
+                            </div>
+                        </div>
 
-                    {!isFinished ? (
-                        <div 
-                            className="text-left leading-relaxed cursor-text select-none" 
-                            onClick={() => inputRef.current && inputRef.current.focus()}
-                        >
+                        {/* Text Display */}
+                        <div className="relative font-mono text-2xl md:text-3xl leading-relaxed tracking-wide h-48 overflow-hidden break-words pointer-events-none select-none">
                             {renderCharacters()}
                         </div>
-                    ) : (
-                        <div className="animate-enter flex flex-col items-center py-4">
-                            {wpm > highScore && highScore > 0 && (
-                                <div className="mb-4 px-4 py-1 rounded-full bg-amber-500/20 text-amber-400 text-sm font-bold flex items-center gap-2 border border-amber-500/30 animate-pop">
-                                    <Icons.Trophy className="w-4 h-4" /> New High Score!
-                                </div>
-                            )}
-                            <WpmChart history={wpmHistory} />
-                            
-                            <div className="grid grid-cols-3 gap-6 w-full max-w-lg mt-6">
-                                <div className="bg-black/30 p-4 rounded-xl border border-white/5 text-center">
-                                    <div className="text-xs text-white/50 uppercase tracking-widest mb-1">Max Streak</div>
-                                    <div className="text-2xl font-bold text-white">{maxStreak}</div>
-                                </div>
-                                <div className="bg-black/30 p-4 rounded-xl border border-white/5 text-center">
-                                    <div className="text-xs text-white/50 uppercase tracking-widest mb-1">Raw WPM</div>
-                                    <div className="text-2xl font-bold text-white">{Math.round((userInput.length / 5) / ((duration - timeLeft || 1) / 60))}</div>
-                                </div>
-                                <div className="bg-black/30 p-4 rounded-xl border border-white/5 text-center">
-                                    <div className="text-xs text-white/50 uppercase tracking-widest mb-1">Characters</div>
-                                    <div className="text-2xl font-bold text-white">{userInput.length}</div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
 
-                <div className={`mt-8 flex justify-between items-center transition-opacity duration-500 ${isZenMode && isActive ? 'opacity-0' : 'opacity-100'}`}>
-                    <div className="text-xs text-white/40 flex items-center gap-2 font-mono">
-                        <Icons.Keyboard className="w-4 h-4" /> Start typing to begin
+                        {/* Hidden Input */}
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={userInput}
+                            onChange={handleInput}
+                            disabled={isFinished}
+                            className="absolute opacity-0 -z-10"
+                            autoFocus
+                            autoComplete="off"
+                            autoCorrect="off"
+                            autoCapitalize="off"
+                            spellCheck="false"
+                        />
                     </div>
-                    
-                    <button 
-                        onClick={restartTest}
-                        className={`group p-4 rounded-full shadow-lg transition-all active:scale-90 ${isLoveMode ? 'bg-rose-600 hover:bg-rose-500 shadow-rose-600/30' : 'bg-cyan-600 hover:bg-cyan-500 shadow-cyan-600/30'}`}
-                        title="Restart"
-                    >
-                        <Icons.RotateCcw className="w-5 h-5 text-white group-hover:-rotate-90 transition-transform duration-300" />
-                    </button>
-                    
-                    <button onClick={() => setShowAbout(true)} className="text-xs text-white/40 hover:text-white/80 transition-colors font-mono">
-                        v2.0.0
-                    </button>
+
+                    {/* Status/Restart Footer */}
+                    <div className={`flex justify-between items-center transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+                        <div className="text-sm text-slate-500 font-mono flex items-center gap-2">
+                            <Icons.Keyboard className="w-4 h-4" /> Start typing to begin
+                        </div>
+                        <button 
+                            onClick={resetState}
+                            className={`p-4 rounded-full bg-slate-800 text-slate-300 hover:bg-cyan-500 hover:text-white transition-all duration-300 shadow-lg hover:shadow-cyan-500/25 ${isActive ? 'rotate-180' : ''}`}
+                            title="Restart (Tab + Enter)"
+                        >
+                            <Icons.RotateCcw className="w-6 h-6" />
+                        </button>
+                        <div className="text-xs text-slate-600 font-mono">v3.0.0</div>
+                    </div>
                 </div>
-            </main>
 
-            {isFinished && <Confetti />}
+                {/* Results View */}
+                {isFinished && (
+                    <div className="mt-8 animate-float">
+                        <div className="glass-panel p-8 rounded-3xl">
+                            <h2 className="text-2xl font-bold mb-6 text-center text-gradient">Session Complete</h2>
+                            <WpmChart data={wpmHistory} />
+                        </div>
+                    </div>
+                )}
+            </div>
 
+            {/* Modals */}
             <StatsModal isOpen={showStats} onClose={() => setShowStats(false)} stats={stats} />
-            <DailyModal isOpen={showDaily} onClose={() => setShowDaily(false)} dailyTask={dailyTask} onStart={() => { setShowDaily(false); handleModeChange(dailyTask.mode); }} />
+            <DailyModal isOpen={showDaily} onClose={() => setShowDaily(false)} onStart={() => {setShowDaily(false); resetState();}} dailyTask={{title: "Code 100 WPM", description: "Hit 100 WPM in Javascript mode", reward: "Hacker Badge"}} />
             <AboutModal isOpen={showAbout} onClose={() => setShowAbout(false)} />
+            
         </div>
     );
 }
-
-export default App;
