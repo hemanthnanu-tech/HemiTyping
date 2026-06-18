@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icons } from './Icons';
 
 export const StatsModal = ({ isOpen, onClose, stats, username }) => {
