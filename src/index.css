@@ -181,11 +181,15 @@ body {
   color: #525252;
 }
 
-/* Ultra Zen Focus Mode */
-.zen-active .word-unfocused {
-  opacity: 0.1;
-  filter: blur(2px);
-  transition: all 0.3s ease;
+/* Ultra Zen Focus Mode (Removed Blur per user request, UI hiding is handled in React) */
+
+/* Speed Glow (when WPM > 60) */
+.speed-glow {
+  box-shadow: 0 0 100px rgba(79, 70, 229, 0.25) !important;
+  border-color: rgba(79, 70, 229, 0.4) !important;
+}
+.dark .speed-glow {
+  box-shadow: 0 0 100px rgba(79, 70, 229, 0.4) !important;
 }
 
 /* Custom Scrollbar */

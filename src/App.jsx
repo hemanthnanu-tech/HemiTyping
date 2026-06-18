@@ -248,29 +248,39 @@ export default function App() {
 
     useEffect(() => {
         if (!textContainerRef.current) return;
-        const spans = textContainerRef.current.children;
+        // Select all actual character elements
+        const chars = textContainerRef.current.querySelectorAll('.char-element');
         
         // Main Caret
-        if (userInput.length < spans.length) {
-            const activeSpan = spans[userInput.length];
+        if (userInput.length < chars.length) {
+            const activeSpan = chars[userInput.length];
             if (activeSpan) {
+                // Ensure the span is rendered and has dimensions
                 setCaretStyle({
                     left: activeSpan.offsetLeft,
                     top: activeSpan.offsetTop,
-                    height: activeSpan.offsetHeight
+                    height: activeSpan.offsetHeight || 40 // fallback height
                 });
             }
+        } else if (chars.length > 0) {
+             // Put caret at the end of the last character
+             const lastSpan = chars[chars.length - 1];
+             setCaretStyle({
+                 left: lastSpan.offsetLeft + lastSpan.offsetWidth,
+                 top: lastSpan.offsetTop,
+                 height: lastSpan.offsetHeight || 40
+             });
         }
 
         // Ghost Caret
-        const ghostInt = Math.min(Math.floor(ghostIndex), spans.length - 1);
-        if (ghostInt >= 0 && ghostInt < spans.length) {
-            const ghostSpan = spans[ghostInt];
+        const ghostInt = Math.min(Math.floor(ghostIndex), chars.length - 1);
+        if (ghostInt >= 0 && ghostInt < chars.length) {
+            const ghostSpan = chars[ghostInt];
             if (ghostSpan) {
                 setGhostStyle({
                     left: ghostSpan.offsetLeft,
                     top: ghostSpan.offsetTop,
-                    height: ghostSpan.offsetHeight
+                    height: ghostSpan.offsetHeight || 40
                 });
             }
         }
@@ -289,9 +299,6 @@ export default function App() {
         let globalCharIndex = 0;
 
         return words.map((word, wIdx) => {
-            const isCurrentWord = wIdx === currentWordIndex;
-            const zenClass = (isZenMode && !isCurrentWord && isActive) ? 'word-unfocused' : '';
-            
             const renderedWord = word.split('').map((char, cIdx) => {
                 const idx = globalCharIndex++;
                 let statusClass = 'char-untyped';
@@ -301,9 +308,7 @@ export default function App() {
                 }
 
                 return (
-                    <span key={idx} className={`${statusClass} transition-colors duration-150 relative`}>
-                        {/* Display the correct char, but if they typed wrong, we could show what they typed above, 
-                            but keeping it clean: red text means mistake. */}
+                    <span key={idx} className={`char-element ${statusClass} transition-colors duration-150 relative`}>
                         {char}
                     </span>
                 );
@@ -317,18 +322,21 @@ export default function App() {
                     spaceClass = userInput[spaceIdx] === ' ' ? 'char-correct' : 'char-incorrect bg-red-500/20';
                 }
                 renderedWord.push(
-                    <span key={spaceIdx} className={`${spaceClass} transition-colors duration-150 relative inline-block w-[0.3em]`}>
+                    <span key={spaceIdx} className={`char-element ${spaceClass} transition-colors duration-150 relative inline-block w-[0.3em]`}>
                         &nbsp;
                     </span>
                 );
             }
 
-            return <span key={wIdx} className={`inline-block ${zenClass}`}>{renderedWord}</span>;
+            return <span key={wIdx} className="inline-block">{renderedWord}</span>;
         });
     };
 
+    const currentWpm = isActive ? Math.round((userInput.length / 5) / ((Date.now() - startTime) / 60000)) || 0 : wpm;
+    const isFullSpeed = isActive && currentWpm > 60;
+
     return (
-        <div className={`h-screen overflow-hidden relative flex flex-col items-center justify-center p-4 selection:bg-blue-500/30 font-sans ${isZenMode && isActive ? 'zen-active' : ''}`}>
+        <div className={`h-screen overflow-hidden relative flex flex-col items-center justify-center p-4 selection:bg-blue-500/30 font-sans`}>
             <div className="bg-aura"></div>
             {showConfetti && <Confetti />}
 
@@ -337,19 +345,16 @@ export default function App() {
                 {/* Premium Minimal Header */}
                 <header className={`flex justify-between items-center mb-6 md:mb-10 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
                     
-                    <button onClick={toggleMode} className="group flex items-center gap-4 hover:opacity-80 transition-opacity focus:outline-none">
-                        <div className={`p-3 rounded-2xl shadow-xl transition-all duration-500 ${isCodeMode ? 'bg-indigo-600 text-white shadow-indigo-500/30' : 'bg-neutral-900 text-white shadow-black/20 dark:bg-white dark:text-neutral-900'} ${iconAnim ? 'scale-75 rotate-[360deg]' : 'scale-100 rotate-0'}`}>
-                            {isCodeMode ? <Icons.Terminal className="w-7 h-7" /> : <Icons.Book className="w-7 h-7" />}
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-2xl bg-black dark:bg-white text-white dark:text-black shadow-xl">
+                            <Icons.Keyboard className="w-7 h-7" />
                         </div>
                         <div className="flex flex-col items-start">
                             <h1 className="text-2xl font-black tracking-tighter">
                                 Hemi<span className="font-light text-neutral-400">Typing</span>
                             </h1>
-                            <span className="text-[11px] uppercase tracking-[0.2em] text-blue-500 font-bold mt-0.5">
-                                {isCodeMode ? 'Code Evolution' : 'Prose Evolution'}
-                            </span>
                         </div>
-                    </button>
+                    </div>
 
                     <div className="flex gap-2 bg-white/5 dark:bg-black/20 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/20 dark:border-white/5">
                         <button onClick={toggleSoundProfile} className="px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex items-center gap-2">
@@ -368,16 +373,23 @@ export default function App() {
                     </div>
                 </header>
 
-                {/* Sub-modes */}
+                {/* Sub-modes & Layout */}
                 <div className={`transition-all duration-700 transform ${isFinished ? '-translate-y-4 opacity-0 pointer-events-none absolute' : 'translate-y-0'}`}>
                     
-                    <div className={`flex justify-between items-center mb-4 px-4 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+                    <div className={`flex justify-between items-center mb-4 px-4 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                         <div className="flex gap-2">
-                            {(isCodeMode ? ['javascript'] : ['prose']).map(m => (
-                                <div key={m} className="px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-widest bg-blue-500/10 text-blue-500">
-                                    {m} Format
-                                </div>
-                            ))}
+                            <button 
+                                onClick={() => { setIsCodeMode(false); setMode('prose'); generateText('prose'); }}
+                                className={`px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 ${!isCodeMode ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/25' : 'text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                            >
+                                <Icons.Book className="w-4 h-4" /> Prose
+                            </button>
+                            <button 
+                                onClick={() => { setIsCodeMode(true); setMode('javascript'); generateText('javascript'); }}
+                                className={`px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-widest transition-all flex items-center gap-2 ${isCodeMode ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/25' : 'text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                            >
+                                <Icons.Terminal className="w-4 h-4" /> Code
+                            </button>
                         </div>
                         <div className="text-xs font-bold uppercase tracking-widest text-neutral-400">
                             Avg Pace: <span className="text-blue-500">{stats.avgWpm} WPM</span>
@@ -386,16 +398,16 @@ export default function App() {
 
                     {/* Main Glass Typing Container */}
                     <div 
-                        className={`relative glass-panel rounded-[2rem] p-6 md:p-10 mb-4 ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''}`}
+                        className={`relative glass-panel rounded-[2rem] p-6 md:p-10 mb-4 ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''} ${isFullSpeed ? 'speed-glow' : ''}`}
                         onClick={() => inputRef.current?.focus()}
                     >
                         {/* Live Stats Header */}
-                        <div className={`flex justify-between items-end mb-8 font-mono transition-opacity duration-300 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+                        <div className={`flex justify-between items-end mb-8 font-mono transition-opacity duration-300 ${isActive && isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             <div className="flex gap-12">
                                 <div>
                                     <div className="text-xs uppercase tracking-widest text-neutral-400 mb-2">Live WPM</div>
-                                    <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500">
-                                        {isActive ? Math.round((userInput.length / 5) / ((Date.now() - startTime) / 60000)) || 0 : wpm}
+                                    <div className={`text-5xl font-black ${isFullSpeed ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-lg' : 'text-blue-500'}`}>
+                                        {currentWpm}
                                     </div>
                                 </div>
                                 <div>
@@ -445,10 +457,10 @@ export default function App() {
                         />
                     </div>
 
-                    <div className={`text-center transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+                    <div className={`text-center transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                         <button 
                             onClick={resetState}
-                            className={`p-5 rounded-2xl bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:scale-105 transition-all duration-300 shadow-lg border border-neutral-200 dark:border-neutral-700 ${isActive ? 'rotate-180' : ''}`}
+                            className={`p-4 rounded-2xl bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:scale-105 transition-all duration-300 shadow-lg border border-neutral-200 dark:border-neutral-700 ${isActive ? 'rotate-180' : ''}`}
                             title="Restart"
                         >
                             <Icons.RotateCcw className="w-6 h-6" />
@@ -505,13 +517,11 @@ export default function App() {
                 )}
             </div>
             
-            {/* Animated Credits Footer */}
+            {/* Redesigned Credits Footer */}
             <footer className="absolute bottom-4 w-full text-center z-10 transition-opacity duration-500 pointer-events-none">
-                <div className="inline-block p-2 px-6 rounded-full glass-panel shadow-2xl">
-                    <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-500 dark:text-neutral-400">
-                        Crafted by <span className="animate-gradient-text font-black text-sm">Hemanth Kumar K</span>
-                    </p>
-                </div>
+                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-neutral-400 opacity-60">
+                    Crafted by Hemanth Kumar K
+                </p>
             </footer>
 
             {/* Modals */}
