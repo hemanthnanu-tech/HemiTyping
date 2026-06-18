@@ -18,14 +18,14 @@ export const WpmChart = ({ history }) => {
             <svg width="100%" height="100%" viewBox={`0 0 ${width} ${height}`} className="overflow-visible">
                 <defs>
                     <linearGradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.4"/>
-                        <stop offset="100%" stopColor="#22d3ee" stopOpacity="0"/>
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.4"/>
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0"/>
                     </linearGradient>
                 </defs>
                 <path d={`M0,${height} ${points} V${height} Z`} fill="url(#chartGradient)" />
-                <polyline fill="none" stroke="#22d3ee" strokeWidth="2" points={points} strokeLinecap="round" strokeLinejoin="round" />
+                <polyline fill="none" stroke="#3b82f6" strokeWidth="2" points={points} strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <div className="absolute top-0 right-0 text-[10px] text-cyan-400 font-mono bg-cyan-950/30 px-1 rounded">
+            <div className="absolute top-0 right-0 text-[10px] text-blue-500 font-mono bg-blue-500/10 px-1 rounded">
                 Peak: {Math.max(...history)}
             </div>
         </div>
