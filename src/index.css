@@ -157,20 +157,21 @@ body {
   50% { opacity: 0; }
 }
 
-/* Character states */
+/* Character states with custom Text Glow */
 .char-correct {
   color: var(--color-text-light);
-  font-weight: 700;
+  font-weight: 900;
+  text-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
 }
 .dark .char-correct {
   color: var(--color-text-dark);
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
 }
 
 .char-incorrect {
   color: var(--color-error);
-  text-decoration: underline;
-  text-decoration-color: rgba(239, 68, 68, 0.5);
-  font-weight: 700;
+  font-weight: 900;
+  text-shadow: 0 0 15px rgba(239, 68, 68, 0.9);
 }
 
 .char-untyped {

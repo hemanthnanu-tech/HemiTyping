@@ -108,9 +108,10 @@ export default function App() {
 
     const generateText = (currentMode) => {
         const data = DATA_SETS[currentMode] || DATA_SETS.prose;
-        // Limit to 2 short sentences for a 2-3 line layout
-        const randomSentences = Array.from({length: 2}, () => data[Math.floor(Math.random() * data.length)]).join(' ');
-        setText(randomSentences);
+        // Limit to approx 15-20 words so it easily fits in 2 lines
+        const sentence = data[Math.floor(Math.random() * data.length)];
+        const words = sentence.split(' ').slice(0, 20).join(' ');
+        setText(words);
         resetState();
     };
 
@@ -327,14 +328,14 @@ export default function App() {
     };
 
     return (
-        <div className={`min-h-screen relative flex flex-col items-center justify-center p-4 selection:bg-blue-500/30 font-sans ${isZenMode && isActive ? 'zen-active' : ''}`}>
+        <div className={`h-screen overflow-hidden relative flex flex-col items-center justify-center p-4 selection:bg-blue-500/30 font-sans ${isZenMode && isActive ? 'zen-active' : ''}`}>
             <div className="bg-aura"></div>
             {showConfetti && <Confetti />}
 
-            <div className="z-10 w-full max-w-6xl flex-grow flex flex-col justify-center">
+            <div className="z-10 w-full max-w-6xl flex flex-col justify-center h-full pb-10">
                 
                 {/* Premium Minimal Header */}
-                <header className={`flex justify-between items-center mb-16 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+                <header className={`flex justify-between items-center mb-6 md:mb-10 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
                     
                     <button onClick={toggleMode} className="group flex items-center gap-4 hover:opacity-80 transition-opacity focus:outline-none">
                         <div className={`p-3 rounded-2xl shadow-xl transition-all duration-500 ${isCodeMode ? 'bg-indigo-600 text-white shadow-indigo-500/30' : 'bg-neutral-900 text-white shadow-black/20 dark:bg-white dark:text-neutral-900'} ${iconAnim ? 'scale-75 rotate-[360deg]' : 'scale-100 rotate-0'}`}>
@@ -370,7 +371,7 @@ export default function App() {
                 {/* Sub-modes */}
                 <div className={`transition-all duration-700 transform ${isFinished ? '-translate-y-4 opacity-0 pointer-events-none absolute' : 'translate-y-0'}`}>
                     
-                    <div className={`flex justify-between items-center mb-8 px-4 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+                    <div className={`flex justify-between items-center mb-4 px-4 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
                         <div className="flex gap-2">
                             {(isCodeMode ? ['javascript'] : ['prose']).map(m => (
                                 <div key={m} className="px-4 py-1.5 rounded-xl text-xs font-bold uppercase tracking-widest bg-blue-500/10 text-blue-500">
@@ -385,11 +386,11 @@ export default function App() {
 
                     {/* Main Glass Typing Container */}
                     <div 
-                        className={`relative glass-panel rounded-[2rem] p-10 md:p-16 mb-8 ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''}`}
+                        className={`relative glass-panel rounded-[2rem] p-6 md:p-10 mb-4 ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''}`}
                         onClick={() => inputRef.current?.focus()}
                     >
                         {/* Live Stats Header */}
-                        <div className={`flex justify-between items-end mb-12 font-mono transition-opacity duration-300 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+                        <div className={`flex justify-between items-end mb-8 font-mono transition-opacity duration-300 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
                             <div className="flex gap-12">
                                 <div>
                                     <div className="text-xs uppercase tracking-widest text-neutral-400 mb-2">Live WPM</div>
@@ -412,7 +413,7 @@ export default function App() {
                         <div className="relative">
                             <div 
                                 ref={textContainerRef}
-                                className={`relative ${isCodeMode ? 'font-mono tracking-normal' : 'font-sans tracking-tight'} text-4xl md:text-[52px] leading-[1.4] font-black break-words pointer-events-none select-none`}
+                                className={`relative ${isCodeMode ? 'font-mono tracking-normal' : 'font-sans tracking-tight'} text-3xl md:text-5xl leading-[1.4] font-black break-words pointer-events-none select-none`}
                             >
                                 {renderText()}
                             </div>
@@ -458,10 +459,10 @@ export default function App() {
                 {/* Results View */}
                 {isFinished && (
                     <div className="animate-float w-full">
-                        <div className="glass-panel p-10 md:p-16 rounded-[2rem]">
-                            <h2 className="text-4xl font-black mb-10 text-center tracking-tight">Mission Accomplished</h2>
+                        <div className="glass-panel p-6 md:p-10 rounded-[2rem]">
+                            <h2 className="text-3xl font-black mb-6 text-center tracking-tight">Mission Accomplished</h2>
                             
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                                 <div className="p-6 rounded-2xl bg-black/5 dark:bg-white/5 text-center">
                                     <div className="text-sm uppercase tracking-widest text-neutral-400 mb-2">Final WPM</div>
                                     <div className="text-6xl font-black text-blue-500">{wpm}</div>
@@ -487,14 +488,14 @@ export default function App() {
                                 </div>
                             </div>
 
-                            <div className="h-64 mb-10">
+                            <div className="h-40 mb-6">
                                 <WpmChart history={wpmHistory} />
                             </div>
 
                             <div className="text-center">
                                 <button 
                                     onClick={() => generateText(mode)}
-                                    className="px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold tracking-widest uppercase transition-all duration-300 shadow-xl shadow-blue-500/20"
+                                    className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold tracking-widest uppercase transition-all duration-300 shadow-xl shadow-blue-500/20"
                                 >
                                     Next Challenge
                                 </button>
@@ -505,10 +506,10 @@ export default function App() {
             </div>
             
             {/* Animated Credits Footer */}
-            <footer className="mt-8 pb-4 w-full text-center z-10 transition-opacity duration-500">
-                <div className="inline-block p-3 px-6 rounded-full glass-panel">
-                    <p className="text-sm font-bold tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
-                        Crafted by <span className="animate-gradient-text font-black">Hemanth Kumar K</span>
+            <footer className="absolute bottom-4 w-full text-center z-10 transition-opacity duration-500 pointer-events-none">
+                <div className="inline-block p-2 px-6 rounded-full glass-panel shadow-2xl">
+                    <p className="text-xs font-bold tracking-[0.2em] uppercase text-neutral-500 dark:text-neutral-400">
+                        Crafted by <span className="animate-gradient-text font-black text-sm">Hemanth Kumar K</span>
                     </p>
                 </div>
             </footer>
