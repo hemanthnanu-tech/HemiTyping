@@ -503,57 +503,60 @@ export default function App() {
                 {isFinished && (
                     <div className="animate-float w-full relative z-20">
                         {finishState === 'success' ? (
-                            <div className="glass-panel p-8 md:p-12 rounded-[2.5rem] border-blue-500/30 shadow-[0_0_120px_rgba(59,130,246,0.15)] dark:shadow-[0_0_120px_rgba(59,130,246,0.25)] relative overflow-hidden">
+                            <div className="glass-panel p-6 md:p-8 rounded-[2rem] border-blue-500/30 shadow-[0_0_80px_rgba(59,130,246,0.15)] dark:shadow-[0_0_80px_rgba(59,130,246,0.25)] relative overflow-hidden max-w-4xl mx-auto">
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 pointer-events-none"></div>
                                 
-                                <div className="text-center relative z-10 mb-10">
-                                    <div className="inline-flex items-center justify-center p-4 bg-blue-500/10 text-blue-500 rounded-2xl mb-6">
-                                        <Icons.Trophy className="w-10 h-10" />
+                                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-6 relative z-10">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl">
+                                            <Icons.Trophy className="w-8 h-8" />
+                                        </div>
+                                        <div className="text-center md:text-left">
+                                            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-neutral-800 dark:text-white">
+                                                Mission Accomplished
+                                            </h2>
+                                            <p className="text-neutral-500 text-sm font-medium">Exceptional performance, {username}.</p>
+                                        </div>
                                     </div>
-                                    <h2 className="text-5xl font-black tracking-tighter text-neutral-800 dark:text-white">
-                                        Mission Accomplished
-                                    </h2>
-                                    <p className="text-neutral-500 mt-2 font-medium">Exceptional performance, {username}.</p>
+                                    <button 
+                                        onClick={() => generateText(mode, username, difficulty)}
+                                        className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold tracking-widest uppercase transition-all shadow-lg shadow-blue-500/30 hover:-translate-y-0.5 whitespace-nowrap"
+                                    >
+                                        Next Challenge
+                                    </button>
                                 </div>
                                 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 relative z-10">
-                                    <div className="p-8 rounded-3xl bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/5 text-center backdrop-blur-md shadow-xl shadow-black/5">
-                                        <div className="text-sm uppercase tracking-widest text-neutral-400 font-bold mb-2">Final WPM</div>
-                                        <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{wpm}</div>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 relative z-10">
+                                    <div className="p-5 rounded-2xl bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/5 text-center backdrop-blur-md shadow-sm">
+                                        <div className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-bold mb-1">Final WPM</div>
+                                        <div className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{wpm}</div>
                                     </div>
-                                    <div className="p-8 rounded-3xl bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/5 text-center backdrop-blur-md shadow-xl shadow-black/5">
-                                        <div className="text-sm uppercase tracking-widest text-neutral-400 font-bold mb-2">Accuracy</div>
-                                        <div className="text-6xl font-black text-neutral-800 dark:text-neutral-100">{accuracy}%</div>
+                                    <div className="p-5 rounded-2xl bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/5 text-center backdrop-blur-md shadow-sm">
+                                        <div className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-bold mb-1">Accuracy</div>
+                                        <div className="text-4xl font-black text-neutral-800 dark:text-neutral-100">{accuracy}%</div>
                                     </div>
-                                    <div className="p-8 rounded-3xl bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/5 text-center backdrop-blur-md shadow-xl shadow-black/5">
-                                        <div className="text-sm uppercase tracking-widest text-neutral-400 font-bold mb-4">Missed Characters</div>
-                                        <div className="flex justify-center gap-3">
+                                    <div className="p-5 rounded-2xl bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/5 text-center backdrop-blur-md shadow-sm flex flex-col justify-center">
+                                        <div className="text-[10px] uppercase tracking-[0.2em] text-neutral-400 font-bold mb-2">Missed Characters</div>
+                                        <div className="flex justify-center gap-2">
                                             {topMissed.length > 0 ? topMissed.map(([char, count], i) => (
                                                 <div key={i} className="flex flex-col items-center">
-                                                    <div className="w-12 h-12 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center font-mono text-2xl font-bold border border-red-500/20">
+                                                    <div className="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center font-mono text-sm font-bold border border-red-500/20">
                                                         {char === ' ' ? 'SPC' : char}
                                                     </div>
-                                                    <div className="text-xs mt-2 text-neutral-500 font-bold">{count}x</div>
+                                                    <div className="text-[10px] mt-1 text-neutral-500 font-bold">{count}x</div>
                                                 </div>
                                             )) : (
-                                                <div className="text-blue-500 font-black tracking-widest uppercase mt-3">Flawless</div>
+                                                <div className="text-blue-500 text-sm font-black tracking-widest uppercase mt-1">Flawless</div>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="h-48 mb-10 relative z-10 bg-white/50 dark:bg-black/20 p-6 rounded-3xl border border-black/5 dark:border-white/5 backdrop-blur-md">
-                                    <WpmChart history={wpmHistory} />
-                                </div>
-
-                                <div className="text-center relative z-10">
-                                    <button 
-                                        onClick={() => generateText(mode, username, difficulty)}
-                                        className="px-10 py-5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black tracking-[0.2em] uppercase transition-all duration-300 shadow-2xl shadow-blue-500/40 hover:shadow-blue-500/60 hover:-translate-y-1"
-                                    >
-                                        Next Challenge
-                                    </button>
-                                </div>
+                                {wpmHistory.length > 1 && (
+                                    <div className="h-32 relative z-10 bg-white/50 dark:bg-black/20 p-4 rounded-2xl border border-black/5 dark:border-white/5 backdrop-blur-md">
+                                        <WpmChart history={wpmHistory} />
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="glass-panel p-10 md:p-16 rounded-[2.5rem] border-red-500/30 shadow-[0_0_100px_rgba(239,68,68,0.1)] dark:shadow-[0_0_100px_rgba(239,68,68,0.2)] text-center relative overflow-hidden">
