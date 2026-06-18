@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from './components/Icons';
 import { Confetti } from './components/Confetti';
 import { WpmChart } from './components/WpmChart';
-import { StatsModal, OnboardingModal } from './components/Modals';
+import { StatsModal, OnboardingModal, AboutModal } from './components/Modals';
 import { DATA_SETS } from './data/constants';
 import { playSound } from './utils/audio';
 
 export default function App() {
     const [username, setUsername] = useState("");
     const [showOnboarding, setShowOnboarding] = useState(false);
+    const [difficulty, setDifficulty] = useState('middle');
     
     const [text, setText] = useState("");
     const [userInput, setUserInput] = useState("");
@@ -35,9 +36,9 @@ export default function App() {
     
     // UI State
     const [showStats, setShowStats] = useState(false);
+    const [showAbout, setShowAbout] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(true);
     const [soundProfile, setSoundProfile] = useState('mechanical'); // 'mechanical' or 'thock'
-    const [isZenMode, setIsZenMode] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [errorShake, setErrorShake] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
@@ -65,16 +66,19 @@ export default function App() {
         if (savedStats) setStats(JSON.parse(savedStats));
         
         const savedSettings = localStorage.getItem('hemiSettings_v4');
+        let initialDiff = 'middle';
         if (savedSettings) {
             const settings = JSON.parse(savedSettings);
             if (settings.soundEnabled !== undefined) setSoundEnabled(settings.soundEnabled);
             if (settings.soundProfile !== undefined) setSoundProfile(settings.soundProfile);
-            if (settings.isZenMode !== undefined) setIsZenMode(settings.isZenMode);
             if (settings.isDarkMode !== undefined) setIsDarkMode(settings.isDarkMode);
+            if (settings.difficulty !== undefined) initialDiff = settings.difficulty;
         }
+        
+        setDifficulty(initialDiff);
 
         // Generate initial text
-        generateText(isCodeMode ? 'javascript' : 'prose', savedName || "");
+        generateText(isCodeMode ? 'javascript' : 'prose', savedName || "", initialDiff);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -91,7 +95,18 @@ export default function App() {
         setUsername(name);
         localStorage.setItem('hemiName', name);
         setShowOnboarding(false);
-        generateText(mode, name);
+        generateText(mode, name, difficulty);
+    };
+
+    const handleUpdateName = (name) => {
+        setUsername(name);
+        localStorage.setItem('hemiName', name);
+    };
+
+    const handleSetDifficulty = (level) => {
+        setDifficulty(level);
+        saveSettings({ difficulty: level });
+        generateText(mode, username, level);
     };
 
     const saveStats = (newStats) => {
@@ -100,7 +115,7 @@ export default function App() {
     };
 
     const saveSettings = (updates) => {
-        const current = { soundEnabled, soundProfile, isZenMode, isDarkMode, ...updates };
+        const current = { soundEnabled, soundProfile, isDarkMode, difficulty, ...updates };
         localStorage.setItem('hemiSettings_v4', JSON.stringify(current));
     };
 
@@ -117,12 +132,13 @@ export default function App() {
         if (soundEnabled) playSound('click', next);
     };
 
-    const generateText = (currentMode, currentName = username) => {
-        const data = DATA_SETS[currentMode] || DATA_SETS.prose;
-        const sentenceTemplate = data[Math.floor(Math.random() * data.length)];
+    const generateText = (currentMode, currentName = username, currentDiff = difficulty) => {
+        const dataSet = DATA_SETS[currentMode] || DATA_SETS.prose;
+        const diffData = dataSet[currentDiff] || dataSet.middle;
+        const sentenceTemplate = diffData[Math.floor(Math.random() * diffData.length)];
         
         // Personalize and limit to ~15-20 words
-        const sentence = sentenceTemplate.replace('[Name]', currentName || 'Developer');
+        const sentence = sentenceTemplate.replace(/\[Name\]/g, currentName || 'Developer');
         const words = sentence.split(' ').slice(0, 20).join(' ');
         
         setText(words);
@@ -338,14 +354,14 @@ export default function App() {
     const isFullSpeed = isActive && currentWpm > 60;
 
     return (
-        <div className={`h-screen overflow-hidden relative flex flex-col items-center justify-center p-4 selection:bg-blue-500/30 font-sans`}>
+        <div className={`h-screen overflow-hidden relative flex flex-col items-center justify-center p-4 selection:bg-blue-500/30 font-sans ${isCodeMode ? 'code-mode-aura' : ''}`}>
             <div className="bg-aura"></div>
             {showConfetti && <Confetti />}
 
             <div className="z-10 w-full max-w-6xl flex flex-col justify-center h-full pb-10">
                 
                 {/* Premium Minimal Header */}
-                <header className={`flex justify-between items-center mb-6 md:mb-10 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                <header className={`flex justify-between items-center mb-6 md:mb-10 transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                     
                     <div className="flex items-center gap-4">
                         <div className="p-3 rounded-2xl bg-black dark:bg-white text-white dark:text-black shadow-xl">
@@ -366,8 +382,8 @@ export default function App() {
                         <button onClick={() => setShowStats(true)} className="p-2.5 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                             <Icons.Stats className="w-5 h-5" />
                         </button>
-                        <button onClick={() => {const z = !isZenMode; setIsZenMode(z); saveSettings({isZenMode: z});}} className={`p-2.5 rounded-xl transition-colors hover:bg-black/5 dark:hover:bg-white/10 ${isZenMode ? 'text-blue-500' : 'text-neutral-500 hover:text-blue-500'}`}>
-                            {isZenMode ? <Icons.EyeOff className="w-5 h-5" /> : <Icons.Eye className="w-5 h-5" />}
+                        <button onClick={() => setShowAbout(true)} className="p-2.5 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                            <Icons.Info className="w-5 h-5" />
                         </button>
                         <button onClick={toggleTheme} className="p-2.5 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                             {isDarkMode ? <Icons.Sun className="w-5 h-5" /> : <Icons.Moon className="w-5 h-5" />}
@@ -378,7 +394,7 @@ export default function App() {
                 {/* Sub-modes & Layout */}
                 <div className={`transition-all duration-700 transform ${isFinished ? '-translate-y-4 opacity-0 pointer-events-none absolute' : 'translate-y-0'}`}>
                     
-                    <div className={`flex flex-wrap gap-4 justify-between items-center mb-4 px-4 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                    <div className={`flex flex-wrap gap-4 justify-between items-center mb-4 px-4 transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                         <div className="flex gap-2">
                             <button 
                                 onClick={() => { setIsCodeMode(false); setMode('prose'); generateText('prose'); }}
@@ -427,7 +443,7 @@ export default function App() {
                         onClick={() => inputRef.current?.focus()}
                     >
                         {/* Live Stats Header */}
-                        <div className={`flex justify-between items-end mb-8 font-mono transition-opacity duration-300 ${isActive && isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                        <div className={`flex justify-between items-end mb-8 font-mono transition-opacity duration-300 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                             <div className="flex gap-12">
                                 <div>
                                     <div className="text-xs uppercase tracking-widest text-neutral-400 mb-2">Live WPM</div>
@@ -472,7 +488,7 @@ export default function App() {
                             type="text"
                             value={userInput}
                             onChange={handleInput}
-                            disabled={isFinished || showOnboarding}
+                            disabled={isFinished || showOnboarding || showAbout || showStats}
                             className="absolute opacity-0 -z-10"
                             autoFocus
                             autoComplete="off"
@@ -487,64 +503,73 @@ export default function App() {
                 {isFinished && (
                     <div className="animate-float w-full relative z-20">
                         {finishState === 'success' ? (
-                            <div className="glass-panel p-6 md:p-10 rounded-[2rem] border-emerald-500/30 shadow-[0_0_100px_rgba(16,185,129,0.1)] dark:shadow-[0_0_100px_rgba(16,185,129,0.2)]">
-                                <h2 className="text-4xl font-black mb-6 text-center tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-cyan-500">
-                                    Mission Accomplished
-                                </h2>
+                            <div className="glass-panel p-8 md:p-12 rounded-[2.5rem] border-blue-500/30 shadow-[0_0_120px_rgba(59,130,246,0.15)] dark:shadow-[0_0_120px_rgba(59,130,246,0.25)] relative overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5 pointer-events-none"></div>
                                 
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                                    <div className="p-6 rounded-2xl bg-black/5 dark:bg-white/5 text-center">
-                                        <div className="text-sm uppercase tracking-widest text-neutral-400 mb-2">Final WPM</div>
-                                        <div className="text-6xl font-black text-emerald-500">{wpm}</div>
+                                <div className="text-center relative z-10 mb-10">
+                                    <div className="inline-flex items-center justify-center p-4 bg-blue-500/10 text-blue-500 rounded-2xl mb-6">
+                                        <Icons.Trophy className="w-10 h-10" />
                                     </div>
-                                    <div className="p-6 rounded-2xl bg-black/5 dark:bg-white/5 text-center">
-                                        <div className="text-sm uppercase tracking-widest text-neutral-400 mb-2">Accuracy</div>
-                                        <div className="text-6xl font-black">{accuracy}%</div>
+                                    <h2 className="text-5xl font-black tracking-tighter text-neutral-800 dark:text-white">
+                                        Mission Accomplished
+                                    </h2>
+                                    <p className="text-neutral-500 mt-2 font-medium">Exceptional performance, {username}.</p>
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 relative z-10">
+                                    <div className="p-8 rounded-3xl bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/5 text-center backdrop-blur-md shadow-xl shadow-black/5">
+                                        <div className="text-sm uppercase tracking-widest text-neutral-400 font-bold mb-2">Final WPM</div>
+                                        <div className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{wpm}</div>
                                     </div>
-                                    <div className="p-6 rounded-2xl bg-black/5 dark:bg-white/5 text-center">
-                                        <div className="text-sm uppercase tracking-widest text-neutral-400 mb-4">Missed Characters</div>
+                                    <div className="p-8 rounded-3xl bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/5 text-center backdrop-blur-md shadow-xl shadow-black/5">
+                                        <div className="text-sm uppercase tracking-widest text-neutral-400 font-bold mb-2">Accuracy</div>
+                                        <div className="text-6xl font-black text-neutral-800 dark:text-neutral-100">{accuracy}%</div>
+                                    </div>
+                                    <div className="p-8 rounded-3xl bg-white/50 dark:bg-black/20 border border-black/5 dark:border-white/5 text-center backdrop-blur-md shadow-xl shadow-black/5">
+                                        <div className="text-sm uppercase tracking-widest text-neutral-400 font-bold mb-4">Missed Characters</div>
                                         <div className="flex justify-center gap-3">
                                             {topMissed.length > 0 ? topMissed.map(([char, count], i) => (
                                                 <div key={i} className="flex flex-col items-center">
-                                                    <div className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center font-mono text-xl font-bold border border-red-500/20">
+                                                    <div className="w-12 h-12 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center font-mono text-2xl font-bold border border-red-500/20">
                                                         {char === ' ' ? 'SPC' : char}
                                                     </div>
-                                                    <div className="text-xs mt-1 text-neutral-500">{count}x</div>
+                                                    <div className="text-xs mt-2 text-neutral-500 font-bold">{count}x</div>
                                                 </div>
                                             )) : (
-                                                <div className="text-emerald-500 font-bold tracking-widest uppercase">Flawless</div>
+                                                <div className="text-blue-500 font-black tracking-widest uppercase mt-3">Flawless</div>
                                             )}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="h-40 mb-6">
+                                <div className="h-48 mb-10 relative z-10 bg-white/50 dark:bg-black/20 p-6 rounded-3xl border border-black/5 dark:border-white/5 backdrop-blur-md">
                                     <WpmChart history={wpmHistory} />
                                 </div>
 
-                                <div className="text-center">
+                                <div className="text-center relative z-10">
                                     <button 
-                                        onClick={() => generateText(mode)}
-                                        className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-white font-black tracking-widest uppercase transition-all duration-300 shadow-xl shadow-emerald-500/30"
+                                        onClick={() => generateText(mode, username, difficulty)}
+                                        className="px-10 py-5 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-black tracking-[0.2em] uppercase transition-all duration-300 shadow-2xl shadow-blue-500/40 hover:shadow-blue-500/60 hover:-translate-y-1"
                                     >
                                         Next Challenge
                                     </button>
                                 </div>
                             </div>
                         ) : (
-                            <div className="glass-panel p-10 md:p-16 rounded-[2rem] border-red-500/30 shadow-[0_0_100px_rgba(239,68,68,0.1)] dark:shadow-[0_0_100px_rgba(239,68,68,0.2)] text-center">
-                                <div className="mx-auto w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6">
-                                    <Icons.Clock className="w-10 h-10" />
+                            <div className="glass-panel p-10 md:p-16 rounded-[2.5rem] border-red-500/30 shadow-[0_0_100px_rgba(239,68,68,0.1)] dark:shadow-[0_0_100px_rgba(239,68,68,0.2)] text-center relative overflow-hidden">
+                                <div className="absolute inset-0 bg-red-500/5 pointer-events-none"></div>
+                                <div className="mx-auto w-24 h-24 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-8 relative z-10">
+                                    <Icons.Clock className="w-12 h-12" />
                                 </div>
-                                <h2 className="text-5xl font-black mb-4 tracking-tight text-red-500">
+                                <h2 className="text-6xl font-black mb-4 tracking-tighter text-red-500 relative z-10">
                                     Time Out
                                 </h2>
-                                <p className="text-neutral-500 dark:text-neutral-400 mb-10 text-lg font-medium">
+                                <p className="text-neutral-500 dark:text-neutral-400 mb-12 text-xl font-medium relative z-10">
                                     You didn't complete the text before the clock ran out.
                                 </p>
                                 <button 
                                     onClick={resetState}
-                                    className="px-8 py-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black tracking-widest uppercase transition-all duration-300 shadow-xl shadow-red-500/30"
+                                    className="px-10 py-5 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-black tracking-[0.2em] uppercase transition-all duration-300 shadow-2xl shadow-red-500/40 hover:-translate-y-1 relative z-10"
                                 >
                                     Try Again
                                 </button>
@@ -553,17 +578,18 @@ export default function App() {
                     </div>
                 )}
             </div>
-            
-            {/* Redesigned Credits Footer */}
-            <footer className="absolute bottom-4 w-full text-center z-10 transition-opacity duration-500 pointer-events-none">
-                <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-neutral-400 opacity-60">
-                    Crafted by Hemanth Kumar K
-                </p>
-            </footer>
 
             {/* Modals */}
             <StatsModal isOpen={showStats} onClose={() => setShowStats(false)} stats={stats} username={username} />
             <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
+            <AboutModal 
+                isOpen={showAbout} 
+                onClose={() => setShowAbout(false)} 
+                username={username}
+                onUpdateName={handleUpdateName}
+                difficulty={difficulty}
+                setDifficulty={handleSetDifficulty}
+            />
         </div>
     );
 }
