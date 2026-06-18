@@ -2,11 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from './components/Icons';
 import { Confetti } from './components/Confetti';
 import { WpmChart } from './components/WpmChart';
-import { StatsModal } from './components/Modals';
+import { StatsModal, OnboardingModal } from './components/Modals';
 import { DATA_SETS } from './data/constants';
 import { playSound } from './utils/audio';
 
 export default function App() {
+    const [username, setUsername] = useState("");
+    const [showOnboarding, setShowOnboarding] = useState(false);
+    
     const [text, setText] = useState("");
     const [userInput, setUserInput] = useState("");
     const [startTime, setStartTime] = useState(null);
@@ -14,6 +17,10 @@ export default function App() {
     const [wpm, setWpm] = useState(0);
     const [accuracy, setAccuracy] = useState(100);
     const [missedChars, setMissedChars] = useState({});
+    
+    // Raw Accuracy Tracking
+    const [totalKeystrokes, setTotalKeystrokes] = useState(0);
+    const [correctKeystrokes, setCorrectKeystrokes] = useState(0);
     
     // High-level mode: 'prose' or 'code'
     const [isCodeMode, setIsCodeMode] = useState(false);
@@ -23,6 +30,7 @@ export default function App() {
     const [timeLeft, setTimeLeft] = useState(30);
     const [isActive, setIsActive] = useState(false);
     const [isFinished, setIsFinished] = useState(false);
+    const [finishState, setFinishState] = useState('none'); // 'success' or 'timeout'
     const [wpmHistory, setWpmHistory] = useState([]);
     
     // UI State
@@ -33,7 +41,6 @@ export default function App() {
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [errorShake, setErrorShake] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
-    const [iconAnim, setIconAnim] = useState(false);
 
     // Persistent Stats
     const [stats, setStats] = useState({ totalRuns: 0, avgWpm: 0, bestWpm: 0, totalChars: 0, history: [] });
@@ -47,6 +54,13 @@ export default function App() {
 
     // Init and load settings
     useEffect(() => {
+        const savedName = localStorage.getItem('hemiName');
+        if (savedName) {
+            setUsername(savedName);
+        } else {
+            setShowOnboarding(true);
+        }
+
         const savedStats = localStorage.getItem('hemiStats_v4');
         if (savedStats) setStats(JSON.parse(savedStats));
         
@@ -59,7 +73,8 @@ export default function App() {
             if (settings.isDarkMode !== undefined) setIsDarkMode(settings.isDarkMode);
         }
 
-        generateText(isCodeMode ? 'javascript' : 'prose');
+        // Generate initial text
+        generateText(isCodeMode ? 'javascript' : 'prose', savedName || "");
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -71,6 +86,13 @@ export default function App() {
             document.documentElement.classList.remove('dark');
         }
     }, [isDarkMode]);
+
+    const handleOnboardingComplete = (name) => {
+        setUsername(name);
+        localStorage.setItem('hemiName', name);
+        setShowOnboarding(false);
+        generateText(mode, name);
+    };
 
     const saveStats = (newStats) => {
         setStats(newStats);
@@ -95,22 +117,14 @@ export default function App() {
         if (soundEnabled) playSound('click', next);
     };
 
-    const toggleMode = () => {
-        setIconAnim(true);
-        setTimeout(() => setIconAnim(false), 500);
-
-        const nextIsCode = !isCodeMode;
-        setIsCodeMode(nextIsCode);
-        const nextMode = nextIsCode ? 'javascript' : 'prose';
-        setMode(nextMode);
-        generateText(nextMode);
-    };
-
-    const generateText = (currentMode) => {
+    const generateText = (currentMode, currentName = username) => {
         const data = DATA_SETS[currentMode] || DATA_SETS.prose;
-        // Limit to approx 15-20 words so it easily fits in 2 lines
-        const sentence = data[Math.floor(Math.random() * data.length)];
+        const sentenceTemplate = data[Math.floor(Math.random() * data.length)];
+        
+        // Personalize and limit to ~15-20 words
+        const sentence = sentenceTemplate.replace('[Name]', currentName || 'Developer');
         const words = sentence.split(' ').slice(0, 20).join(' ');
+        
         setText(words);
         resetState();
     };
@@ -121,10 +135,13 @@ export default function App() {
         setEndTime(null);
         setWpm(0);
         setAccuracy(100);
+        setTotalKeystrokes(0);
+        setCorrectKeystrokes(0);
         setMissedChars({});
         setTimeLeft(duration);
         setIsActive(false);
         setIsFinished(false);
+        setFinishState('none');
         setWpmHistory([]);
         setShowConfetti(false);
         setGhostIndex(0);
@@ -136,31 +153,28 @@ export default function App() {
         if (isFinished) return;
         
         const value = e.target.value;
-        // Prevent typing beyond text length
         if (value.length > text.length) return;
 
+        // Start Timer
         if (!isActive && value.length === 1) {
             setIsActive(true);
             setStartTime(Date.now());
             
-            // Start main timer
             timerRef.current = setInterval(() => {
                 setTimeLeft((prev) => {
                     if (prev <= 1) {
-                        endTest(value);
+                        endTest('timeout', value);
                         return 0;
                     }
                     return prev - 1;
                 });
                 
-                // Track history
                 const timeElapsed = (Date.now() - (startTime || Date.now())) / 60000;
                 if (timeElapsed > 0) {
                     const words = userInput.length / 5;
                     setWpmHistory(prev => [...prev, Math.round(words / timeElapsed)]);
                 }
 
-                // Move ghost caret based on avgWpm or default 60
                 const targetWpm = stats.avgWpm > 0 ? stats.avgWpm : 60;
                 const charsPerSec = (targetWpm * 5) / 60;
                 setGhostIndex(prev => Math.min(text.length, prev + charsPerSec));
@@ -168,20 +182,24 @@ export default function App() {
             }, 1000);
         }
 
-        // Check the newly typed character
+        // Logic for Accuracy & Sound
+        let newTotalKeys = totalKeystrokes;
+        let newCorrectKeys = correctKeystrokes;
+
         if (value.length > userInput.length) {
+            newTotalKeys++;
             const newCharIndex = value.length - 1;
             const expectedChar = text[newCharIndex];
             const typedChar = value[newCharIndex];
             
             if (typedChar === expectedChar) {
+                newCorrectKeys++;
                 if (soundEnabled) playSound('click', soundProfile);
             } else {
                 setErrorShake(true);
                 if (soundEnabled) playSound('error');
                 setTimeout(() => setErrorShake(false), 300);
                 
-                // Track missed character
                 setMissedChars(prev => ({
                     ...prev,
                     [expectedChar]: (prev[expectedChar] || 0) + 1
@@ -192,53 +210,58 @@ export default function App() {
             if (soundEnabled) playSound('click', soundProfile);
         }
 
+        setTotalKeystrokes(newTotalKeys);
+        setCorrectKeystrokes(newCorrectKeys);
         setUserInput(value);
         
-        // Calculate Accuracy
-        let correctCount = 0;
-        for(let i=0; i<value.length; i++) {
-            if (value[i] === text[i]) correctCount++;
-        }
-        setAccuracy(value.length > 0 ? Math.floor((correctCount / value.length) * 100) : 100);
+        // Raw Accuracy
+        setAccuracy(newTotalKeys > 0 ? Math.floor((newCorrectKeys / newTotalKeys) * 100) : 100);
 
         if (value.length === text.length) {
-            endTest(value);
+            endTest('success', value);
         }
     };
 
-    const endTest = (finalInput = userInput) => {
+    const endTest = (state, finalInput) => {
         clearInterval(timerRef.current);
         setIsActive(false);
         setIsFinished(true);
+        setFinishState(state);
+        
         const finalTime = Date.now();
         setEndTime(finalTime);
 
         const timeElapsed = (finalTime - startTime) / 60000;
-        let correctCount = 0;
+        
+        // Calculate WPM based on correct characters typed in the final string
+        let strictCorrectCount = 0;
         for(let i=0; i<finalInput.length; i++) {
-            if (finalInput[i] === text[i]) correctCount++;
+            if (finalInput[i] === text[i]) strictCorrectCount++;
         }
         
-        const words = correctCount / 5;
+        const words = strictCorrectCount / 5;
         const finalWpm = timeElapsed > 0 ? Math.round(words / timeElapsed) : 0;
         
         setWpm(finalWpm);
 
-        const newRuns = stats.totalRuns + 1;
-        const newAvg = Math.round(((stats.avgWpm * stats.totalRuns) + finalWpm) / newRuns);
-        const newBest = Math.max(stats.bestWpm, finalWpm);
-        
-        saveStats({
-            totalRuns: newRuns,
-            avgWpm: newAvg,
-            bestWpm: newBest,
-            totalChars: stats.totalChars + finalInput.length,
-            history: [...stats.history, { date: Date.now(), wpm: finalWpm, acc: accuracy, mode }].slice(-50)
-        });
+        if (state === 'success') {
+            const newRuns = stats.totalRuns + 1;
+            const newAvg = Math.round(((stats.avgWpm * stats.totalRuns) + finalWpm) / newRuns);
+            const newBest = Math.max(stats.bestWpm, finalWpm);
+            
+            saveStats({
+                totalRuns: newRuns,
+                avgWpm: newAvg,
+                bestWpm: newBest,
+                totalChars: stats.totalChars + finalInput.length,
+                history: [...stats.history, { date: Date.now(), wpm: finalWpm, acc: accuracy, mode }].slice(-50)
+            });
 
-        if (finalWpm > stats.bestWpm && finalWpm > 0) {
             setShowConfetti(true);
             if (soundEnabled) playSound('finish');
+        } else {
+            // Failure sound
+            if (soundEnabled) playSound('error');
         }
     };
 
@@ -248,40 +271,23 @@ export default function App() {
 
     useEffect(() => {
         if (!textContainerRef.current) return;
-        // Select all actual character elements
         const chars = textContainerRef.current.querySelectorAll('.char-element');
         
-        // Main Caret
         if (userInput.length < chars.length) {
             const activeSpan = chars[userInput.length];
             if (activeSpan) {
-                // Ensure the span is rendered and has dimensions
-                setCaretStyle({
-                    left: activeSpan.offsetLeft,
-                    top: activeSpan.offsetTop,
-                    height: activeSpan.offsetHeight || 40 // fallback height
-                });
+                setCaretStyle({ left: activeSpan.offsetLeft, top: activeSpan.offsetTop, height: activeSpan.offsetHeight || 40 });
             }
         } else if (chars.length > 0) {
-             // Put caret at the end of the last character
              const lastSpan = chars[chars.length - 1];
-             setCaretStyle({
-                 left: lastSpan.offsetLeft + lastSpan.offsetWidth,
-                 top: lastSpan.offsetTop,
-                 height: lastSpan.offsetHeight || 40
-             });
+             setCaretStyle({ left: lastSpan.offsetLeft + lastSpan.offsetWidth, top: lastSpan.offsetTop, height: lastSpan.offsetHeight || 40 });
         }
 
-        // Ghost Caret
         const ghostInt = Math.min(Math.floor(ghostIndex), chars.length - 1);
         if (ghostInt >= 0 && ghostInt < chars.length) {
             const ghostSpan = chars[ghostInt];
             if (ghostSpan) {
-                setGhostStyle({
-                    left: ghostSpan.offsetLeft,
-                    top: ghostSpan.offsetTop,
-                    height: ghostSpan.offsetHeight || 40
-                });
+                setGhostStyle({ left: ghostSpan.offsetLeft, top: ghostSpan.offsetTop, height: ghostSpan.offsetHeight || 40 });
             }
         }
     }, [userInput, ghostIndex, text]);
@@ -290,9 +296,6 @@ export default function App() {
     const topMissed = Object.entries(missedChars)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3);
-
-    // Render text with Zen Mode logic
-    const currentWordIndex = text.slice(0, userInput.length).split(' ').length - 1;
 
     const renderText = () => {
         const words = text.split(' ');
@@ -314,7 +317,6 @@ export default function App() {
                 );
             });
 
-            // Add space
             if (wIdx < words.length - 1) {
                 const spaceIdx = globalCharIndex++;
                 let spaceClass = 'char-untyped';
@@ -343,7 +345,7 @@ export default function App() {
             <div className="z-10 w-full max-w-6xl flex flex-col justify-center h-full pb-10">
                 
                 {/* Premium Minimal Header */}
-                <header className={`flex justify-between items-center mb-6 md:mb-10 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0' : 'opacity-100'}`}>
+                <header className={`flex justify-between items-center mb-6 md:mb-10 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                     
                     <div className="flex items-center gap-4">
                         <div className="p-3 rounded-2xl bg-black dark:bg-white text-white dark:text-black shadow-xl">
@@ -376,7 +378,7 @@ export default function App() {
                 {/* Sub-modes & Layout */}
                 <div className={`transition-all duration-700 transform ${isFinished ? '-translate-y-4 opacity-0 pointer-events-none absolute' : 'translate-y-0'}`}>
                     
-                    <div className={`flex justify-between items-center mb-4 px-4 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                    <div className={`flex flex-wrap gap-4 justify-between items-center mb-4 px-4 transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                         <div className="flex gap-2">
                             <button 
                                 onClick={() => { setIsCodeMode(false); setMode('prose'); generateText('prose'); }}
@@ -391,8 +393,31 @@ export default function App() {
                                 <Icons.Terminal className="w-4 h-4" /> Code
                             </button>
                         </div>
-                        <div className="text-xs font-bold uppercase tracking-widest text-neutral-400">
-                            Avg Pace: <span className="text-blue-500">{stats.avgWpm} WPM</span>
+                        
+                        <div className="flex items-center gap-4">
+                            {/* Time Options */}
+                            <div className="flex gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+                                {[15, 30, 60].map(d => (
+                                    <button 
+                                        key={d}
+                                        onClick={() => {setDuration(d); setTimeLeft(d); resetState();}}
+                                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${duration === d ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
+                                    >
+                                        {d}s
+                                    </button>
+                                ))}
+                            </div>
+                            
+                            <div className="w-px h-6 bg-neutral-200/50 dark:bg-white/10"></div>
+                            
+                            {/* Small Reset Button */}
+                            <button 
+                                onClick={resetState}
+                                className={`p-2 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-blue-500/10 transition-colors focus:outline-none ${isActive ? 'rotate-180' : ''}`}
+                                title="Restart"
+                            >
+                                <Icons.RotateCcw className="w-5 h-5" />
+                            </button>
                         </div>
                     </div>
 
@@ -417,7 +442,7 @@ export default function App() {
                             </div>
                             <div className="text-right">
                                 <div className="text-xs uppercase tracking-widest text-neutral-400 mb-2">Time Remaining</div>
-                                <div className={`text-5xl font-light ${timeLeft <= 10 && isActive ? 'text-red-500' : ''}`}>{timeLeft}s</div>
+                                <div className={`text-5xl font-light ${timeLeft <= 10 && isActive ? 'text-red-500 animate-pulse' : ''}`}>{timeLeft}s</div>
                             </div>
                         </div>
 
@@ -447,7 +472,7 @@ export default function App() {
                             type="text"
                             value={userInput}
                             onChange={handleInput}
-                            disabled={isFinished}
+                            disabled={isFinished || showOnboarding}
                             className="absolute opacity-0 -z-10"
                             autoFocus
                             autoComplete="off"
@@ -456,63 +481,75 @@ export default function App() {
                             spellCheck="false"
                         />
                     </div>
-
-                    <div className={`text-center transition-opacity duration-500 ${isActive && isZenMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-                        <button 
-                            onClick={resetState}
-                            className={`p-4 rounded-2xl bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:scale-105 transition-all duration-300 shadow-lg border border-neutral-200 dark:border-neutral-700 ${isActive ? 'rotate-180' : ''}`}
-                            title="Restart"
-                        >
-                            <Icons.RotateCcw className="w-6 h-6" />
-                        </button>
-                    </div>
                 </div>
 
                 {/* Results View */}
                 {isFinished && (
-                    <div className="animate-float w-full">
-                        <div className="glass-panel p-6 md:p-10 rounded-[2rem]">
-                            <h2 className="text-3xl font-black mb-6 text-center tracking-tight">Mission Accomplished</h2>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                                <div className="p-6 rounded-2xl bg-black/5 dark:bg-white/5 text-center">
-                                    <div className="text-sm uppercase tracking-widest text-neutral-400 mb-2">Final WPM</div>
-                                    <div className="text-6xl font-black text-blue-500">{wpm}</div>
-                                </div>
-                                <div className="p-6 rounded-2xl bg-black/5 dark:bg-white/5 text-center">
-                                    <div className="text-sm uppercase tracking-widest text-neutral-400 mb-2">Accuracy</div>
-                                    <div className="text-6xl font-black">{accuracy}%</div>
-                                </div>
-                                <div className="p-6 rounded-2xl bg-black/5 dark:bg-white/5 text-center">
-                                    <div className="text-sm uppercase tracking-widest text-neutral-400 mb-4">Missed Characters</div>
-                                    <div className="flex justify-center gap-3">
-                                        {topMissed.length > 0 ? topMissed.map(([char, count], i) => (
-                                            <div key={i} className="flex flex-col items-center">
-                                                <div className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center font-mono text-xl font-bold border border-red-500/20">
-                                                    {char === ' ' ? 'SPC' : char}
+                    <div className="animate-float w-full relative z-20">
+                        {finishState === 'success' ? (
+                            <div className="glass-panel p-6 md:p-10 rounded-[2rem] border-emerald-500/30 shadow-[0_0_100px_rgba(16,185,129,0.1)] dark:shadow-[0_0_100px_rgba(16,185,129,0.2)]">
+                                <h2 className="text-4xl font-black mb-6 text-center tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-cyan-500">
+                                    Mission Accomplished
+                                </h2>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                                    <div className="p-6 rounded-2xl bg-black/5 dark:bg-white/5 text-center">
+                                        <div className="text-sm uppercase tracking-widest text-neutral-400 mb-2">Final WPM</div>
+                                        <div className="text-6xl font-black text-emerald-500">{wpm}</div>
+                                    </div>
+                                    <div className="p-6 rounded-2xl bg-black/5 dark:bg-white/5 text-center">
+                                        <div className="text-sm uppercase tracking-widest text-neutral-400 mb-2">Accuracy</div>
+                                        <div className="text-6xl font-black">{accuracy}%</div>
+                                    </div>
+                                    <div className="p-6 rounded-2xl bg-black/5 dark:bg-white/5 text-center">
+                                        <div className="text-sm uppercase tracking-widest text-neutral-400 mb-4">Missed Characters</div>
+                                        <div className="flex justify-center gap-3">
+                                            {topMissed.length > 0 ? topMissed.map(([char, count], i) => (
+                                                <div key={i} className="flex flex-col items-center">
+                                                    <div className="w-10 h-10 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center font-mono text-xl font-bold border border-red-500/20">
+                                                        {char === ' ' ? 'SPC' : char}
+                                                    </div>
+                                                    <div className="text-xs mt-1 text-neutral-500">{count}x</div>
                                                 </div>
-                                                <div className="text-xs mt-1 text-neutral-500">{count}x</div>
-                                            </div>
-                                        )) : (
-                                            <div className="text-emerald-500 font-bold tracking-widest uppercase">Flawless</div>
-                                        )}
+                                            )) : (
+                                                <div className="text-emerald-500 font-bold tracking-widest uppercase">Flawless</div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="h-40 mb-6">
-                                <WpmChart history={wpmHistory} />
-                            </div>
+                                <div className="h-40 mb-6">
+                                    <WpmChart history={wpmHistory} />
+                                </div>
 
-                            <div className="text-center">
+                                <div className="text-center">
+                                    <button 
+                                        onClick={() => generateText(mode)}
+                                        className="px-8 py-4 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-400 hover:to-cyan-400 text-white font-black tracking-widest uppercase transition-all duration-300 shadow-xl shadow-emerald-500/30"
+                                    >
+                                        Next Challenge
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="glass-panel p-10 md:p-16 rounded-[2rem] border-red-500/30 shadow-[0_0_100px_rgba(239,68,68,0.1)] dark:shadow-[0_0_100px_rgba(239,68,68,0.2)] text-center">
+                                <div className="mx-auto w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mb-6">
+                                    <Icons.Clock className="w-10 h-10" />
+                                </div>
+                                <h2 className="text-5xl font-black mb-4 tracking-tight text-red-500">
+                                    Time Out
+                                </h2>
+                                <p className="text-neutral-500 dark:text-neutral-400 mb-10 text-lg font-medium">
+                                    You didn't complete the text before the clock ran out.
+                                </p>
                                 <button 
-                                    onClick={() => generateText(mode)}
-                                    className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold tracking-widest uppercase transition-all duration-300 shadow-xl shadow-blue-500/20"
+                                    onClick={resetState}
+                                    className="px-8 py-4 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black tracking-widest uppercase transition-all duration-300 shadow-xl shadow-red-500/30"
                                 >
-                                    Next Challenge
+                                    Try Again
                                 </button>
                             </div>
-                        </div>
+                        )}
                     </div>
                 )}
             </div>
@@ -525,7 +562,8 @@ export default function App() {
             </footer>
 
             {/* Modals */}
-            <StatsModal isOpen={showStats} onClose={() => setShowStats(false)} stats={stats} />
+            <StatsModal isOpen={showStats} onClose={() => setShowStats(false)} stats={stats} username={username} />
+            <OnboardingModal isOpen={showOnboarding} onComplete={handleOnboardingComplete} />
         </div>
     );
 }

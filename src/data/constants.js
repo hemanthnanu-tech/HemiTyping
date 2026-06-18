@@ -1,15 +1,15 @@
 export const DATA_SETS = {
     prose: [
-        "Innovation distinguishes between a leader and a follower in the modern tech industry.",
-        "To achieve great things, two things are needed: a plan, and not quite enough time.",
-        "Quality means doing it right when no one is looking. This is the essence of true engineering.",
-        "The best way to predict the future is to invent it. Start building tomorrow today.",
-        "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-        "Design is not just what it looks like and feels like. Design is how it works under the hood.",
-        "Simplicity is the ultimate sophistication. Strive for elegant, minimalist solutions.",
-        "Your most unhappy customers are your greatest source of learning and innovation.",
-        "Continuous improvement is better than delayed perfection. Ship early, iterate fast.",
-        "Data beats emotions. Base your decisions on concrete analytics and empirical evidence."
+        "[Name], innovation distinguishes between a leader and a follower.",
+        "To achieve great things, [Name], two things are needed: a plan, and time.",
+        "Quality means doing it right when no one is looking, [Name].",
+        "The best way to predict the future is to invent it, [Name].",
+        "[Name], success is not final, failure is not fatal.",
+        "Design is not just what it looks like, [Name]. Design is how it works.",
+        "Simplicity is the ultimate sophistication, [Name].",
+        "Your most unhappy customers are your greatest source of learning, [Name].",
+        "[Name], continuous improvement is better than delayed perfection.",
+        "Data beats emotions, [Name]. Base your decisions on analytics."
     ],
     javascript: [
         "const response = await fetch('/api/v1/users');",
