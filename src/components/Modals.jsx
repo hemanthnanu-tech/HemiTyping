@@ -5,36 +5,44 @@ export const StatsModal = ({ isOpen, onClose, stats, username }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-            <div className="glass-panel p-8 rounded-[2rem] max-w-md w-full animate-float relative border border-blue-500/30">
-                <button onClick={onClose} className="absolute top-5 right-5 text-neutral-400 hover:text-blue-500 transition-colors">
-                    <Icons.X className="w-6 h-6" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xl flex items-center justify-center z-[100] p-4">
+            <div className="glass-panel p-10 rounded-[2.5rem] max-w-lg w-full animate-float relative border border-white/10 dark:border-white/5 shadow-2xl shadow-blue-500/10 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5 pointer-events-none"></div>
+                
+                <button onClick={onClose} className="absolute top-6 right-6 text-neutral-400 hover:text-blue-500 transition-colors z-10 bg-black/5 dark:bg-white/5 p-2 rounded-full hover:bg-blue-500/10">
+                    <Icons.X className="w-5 h-5" />
                 </button>
-                <div className="flex items-center gap-4 mb-8">
-                    <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl">
-                        <Icons.Trophy className="w-6 h-6" />
+                
+                <div className="flex flex-col items-center text-center mb-10 relative z-10">
+                    <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-blue-500/30 transform rotate-3">
+                        <Icons.Trophy className="w-8 h-8 text-white -rotate-3" />
                     </div>
-                    <h2 className="text-2xl font-black tracking-tight text-neutral-800 dark:text-neutral-100">
-                        {username ? `${username}'s Progress` : 'User Progress'}
+                    <h2 className="text-3xl font-black tracking-tight text-neutral-800 dark:text-white">
+                        {username ? `${username}'s Career` : 'Career Stats'}
                     </h2>
+                    <p className="text-neutral-500 text-sm font-medium mt-1">Your lifetime typing performance.</p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-black/5 dark:border-white/5">
-                        <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-500 dark:text-neutral-400 mb-1">Highest WPM</div>
-                        <div className="text-4xl font-black text-blue-500">{stats.bestWpm}</div>
+                <div className="grid grid-cols-2 gap-4 relative z-10">
+                    <div className="bg-white/60 dark:bg-black/40 p-6 rounded-3xl border border-white/20 dark:border-white/5 backdrop-blur-md transition-transform hover:scale-[1.02]">
+                        <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-400 mb-2 flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div> Top Speed
+                        </div>
+                        <div className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500">{stats.bestWpm}</div>
                     </div>
-                    <div className="bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-black/5 dark:border-white/5">
-                        <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-500 dark:text-neutral-400 mb-1">Avg WPM</div>
-                        <div className="text-4xl font-black text-emerald-500">{stats.avgWpm}</div>
+                    <div className="bg-white/60 dark:bg-black/40 p-6 rounded-3xl border border-white/20 dark:border-white/5 backdrop-blur-md transition-transform hover:scale-[1.02]">
+                        <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-400 mb-2 flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Average
+                        </div>
+                        <div className="text-5xl font-black text-emerald-500">{stats.avgWpm}</div>
                     </div>
-                    <div className="bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-black/5 dark:border-white/5">
-                        <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-500 dark:text-neutral-400 mb-1">Sessions</div>
-                        <div className="text-4xl font-black text-neutral-700 dark:text-neutral-200">{stats.totalRuns}</div>
+                    <div className="bg-white/60 dark:bg-black/40 p-6 rounded-3xl border border-white/20 dark:border-white/5 backdrop-blur-md transition-transform hover:scale-[1.02]">
+                        <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-400 mb-2">Total Tests</div>
+                        <div className="text-3xl font-black text-neutral-700 dark:text-neutral-200">{stats.totalRuns}</div>
                     </div>
-                    <div className="bg-black/5 dark:bg-white/5 p-5 rounded-2xl border border-black/5 dark:border-white/5">
-                        <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-500 dark:text-neutral-400 mb-1">Keystrokes</div>
-                        <div className="text-4xl font-black text-neutral-700 dark:text-neutral-200">{stats.totalChars.toLocaleString()}</div>
+                    <div className="bg-white/60 dark:bg-black/40 p-6 rounded-3xl border border-white/20 dark:border-white/5 backdrop-blur-md transition-transform hover:scale-[1.02]">
+                        <div className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-400 mb-2">Keystrokes</div>
+                        <div className="text-3xl font-black text-neutral-700 dark:text-neutral-200">{stats.totalChars.toLocaleString()}</div>
                     </div>
                 </div>
             </div>
@@ -56,32 +64,35 @@ export const OnboardingModal = ({ isOpen, onComplete }) => {
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[100] p-4">
-            <div className="glass-panel p-10 rounded-[2rem] max-w-md w-full animate-float relative border border-blue-500/50 shadow-2xl shadow-blue-500/20 text-center">
-                <div className="mx-auto w-16 h-16 bg-blue-500 text-white rounded-2xl flex items-center justify-center mb-6 shadow-lg shadow-blue-500/50">
-                    <Icons.Keyboard className="w-8 h-8" />
+            <div className="glass-panel p-12 rounded-[3rem] max-w-lg w-full animate-float relative border border-white/10 dark:border-white/5 shadow-2xl overflow-hidden text-center">
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-500/10 to-transparent pointer-events-none"></div>
+                
+                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-[1.5rem] flex items-center justify-center mb-8 shadow-xl shadow-blue-500/30 transform -rotate-6">
+                    <Icons.Keyboard className="w-10 h-10 rotate-6" />
                 </div>
-                <h1 className="text-3xl font-black tracking-tighter text-neutral-800 dark:text-white mb-2">
-                    Welcome to HemiTyping
+                
+                <h1 className="text-4xl font-black tracking-tighter text-neutral-800 dark:text-white mb-3 relative z-10">
+                    Welcome to Hemi
                 </h1>
-                <p className="text-neutral-500 dark:text-neutral-400 mb-8 font-medium">
-                    Please enter your name to personalize your typing experience.
+                <p className="text-neutral-500 dark:text-neutral-400 mb-10 text-lg font-medium relative z-10">
+                    Enter your callsign to initialize the typing engine.
                 </p>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-5 relative z-10">
                     <input 
                         type="text" 
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Your Name"
-                        className="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-5 py-4 text-xl font-bold text-center focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all text-neutral-900 dark:text-white"
+                        className="w-full bg-white/50 dark:bg-black/40 border-2 border-transparent focus:border-blue-500/50 rounded-2xl px-6 py-5 text-2xl font-black text-center focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all text-neutral-900 dark:text-white shadow-inner"
                         autoFocus
                     />
                     <button 
                         type="submit"
                         disabled={!name.trim()}
-                        className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-black tracking-widest uppercase py-4 rounded-xl transition-all shadow-xl shadow-blue-500/25"
+                        className="w-full bg-neutral-900 dark:bg-white hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed text-white dark:text-black font-black tracking-[0.2em] uppercase py-5 rounded-2xl transition-all shadow-xl"
                     >
-                        Start Evolution
+                        Initialize
                     </button>
                 </form>
             </div>
@@ -89,7 +100,7 @@ export const OnboardingModal = ({ isOpen, onComplete }) => {
     );
 };
 
-export const AboutModal = ({ isOpen, onClose, username, onUpdateName, difficulty, setDifficulty, caretStyleType, setCaretStyleType, fontFamily, setFontFamily }) => {
+export const AboutModal = ({ isOpen, onClose, username, onUpdateName, caretStyleType, setCaretStyleType, fontFamily, setFontFamily }) => {
     const [editName, setEditName] = useState(username || "");
 
     useEffect(() => {
@@ -105,66 +116,50 @@ export const AboutModal = ({ isOpen, onClose, username, onUpdateName, difficulty
     };
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-            <div className="glass-panel p-8 rounded-[2rem] max-w-md w-full animate-float relative border border-blue-500/30 shadow-2xl">
-                <button onClick={onClose} className="absolute top-5 right-5 text-neutral-400 hover:text-blue-500 transition-colors">
-                    <Icons.X className="w-6 h-6" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xl flex items-center justify-center z-50 p-4">
+            <div className="glass-panel p-10 rounded-[2.5rem] max-w-md w-full animate-float relative border border-white/10 dark:border-white/5 shadow-2xl overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500/5 to-transparent pointer-events-none"></div>
+                
+                <button onClick={onClose} className="absolute top-6 right-6 text-neutral-400 hover:text-blue-500 transition-colors z-10 bg-black/5 dark:bg-white/5 p-2 rounded-full hover:bg-blue-500/10">
+                    <Icons.X className="w-5 h-5" />
                 </button>
                 
-                <div className="flex items-center gap-4 mb-6">
-                    <div className="p-3 bg-blue-500/10 text-blue-500 rounded-xl">
-                        <Icons.Info className="w-6 h-6" />
+                <div className="flex items-center gap-5 mb-8 relative z-10">
+                    <div className="p-4 bg-white/60 dark:bg-black/40 text-neutral-800 dark:text-white rounded-2xl shadow-sm border border-white/20 dark:border-white/5">
+                        <Icons.Info className="w-7 h-7" />
                     </div>
-                    <h2 className="text-2xl font-black tracking-tight text-neutral-800 dark:text-neutral-100">
-                        About & Settings
-                    </h2>
+                    <div>
+                        <h2 className="text-3xl font-black tracking-tight text-neutral-800 dark:text-white">
+                            Settings
+                        </h2>
+                        <p className="text-neutral-500 text-sm font-medium mt-1">Configure your engine.</p>
+                    </div>
                 </div>
                 
-                <div className="space-y-6">
-                    <div className="bg-black/5 dark:bg-white/5 p-4 rounded-xl border border-black/5 dark:border-white/5">
-                        <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">
-                            HemiTyping is a high-performance typing engine designed for developers to hone their prose and code syntax mastery.
-                        </p>
-                    </div>
-
+                <div className="space-y-6 relative z-10">
                     <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-500">Your Name</label>
+                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-400 pl-1">Callsign</label>
                         <div className="flex gap-2">
                             <input 
                                 type="text"
                                 value={editName}
                                 onChange={(e) => setEditName(e.target.value)}
-                                className="flex-1 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 font-bold text-neutral-900 dark:text-white focus:outline-none focus:border-blue-500"
+                                className="flex-1 bg-white/50 dark:bg-black/40 border border-transparent focus:border-blue-500/30 rounded-2xl px-5 py-4 font-bold text-neutral-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all shadow-inner"
                             />
-                            <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-500 text-white px-4 rounded-xl font-bold transition-colors">
+                            <button onClick={handleSave} className="bg-neutral-900 dark:bg-white hover:bg-black text-white dark:text-black dark:hover:bg-neutral-200 px-6 rounded-2xl font-black uppercase tracking-widest text-sm transition-colors shadow-lg">
                                 Save
                             </button>
                         </div>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-500">Difficulty Level</label>
-                        <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
-                            {['beginner', 'middle', 'expert'].map((level) => (
-                                <button
-                                    key={level}
-                                    onClick={() => setDifficulty(level)}
-                                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${difficulty === level ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
-                                >
-                                    {level}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-500">Caret Style</label>
-                        <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-400 pl-1">Caret Style</label>
+                        <div className="flex bg-white/40 dark:bg-black/40 p-1.5 rounded-2xl border border-white/20 dark:border-white/5">
                             {['line', 'block', 'underline'].map((style) => (
                                 <button
                                     key={style}
                                     onClick={() => setCaretStyleType(style)}
-                                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${caretStyleType === style ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
+                                    className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${caretStyleType === style ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-md transform scale-[1.02]' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 hover:bg-white/50 dark:hover:bg-white/5'}`}
                                 >
                                     {style}
                                 </button>
@@ -173,13 +168,13 @@ export const AboutModal = ({ isOpen, onClose, username, onUpdateName, difficulty
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-500">Font Family</label>
-                        <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-400 pl-1">Font Family</label>
+                        <div className="flex bg-white/40 dark:bg-black/40 p-1.5 rounded-2xl border border-white/20 dark:border-white/5">
                             {['sans', 'mono', 'serif'].map((font) => (
                                 <button
                                     key={font}
                                     onClick={() => setFontFamily(font)}
-                                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${fontFamily === font ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
+                                    className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${fontFamily === font ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-md transform scale-[1.02]' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 hover:bg-white/50 dark:hover:bg-white/5'}`}
                                 >
                                     {font}
                                 </button>

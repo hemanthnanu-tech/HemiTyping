@@ -435,6 +435,21 @@ export default function App() {
                         </div>
                         
                         <div className="flex items-center gap-4">
+                            {/* Difficulty Options */}
+                            <div className="flex gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+                                {['beginner', 'middle', 'expert'].map((level) => (
+                                    <button
+                                        key={level}
+                                        onClick={() => handleSetDifficulty(level)}
+                                        className={`px-3 py-1 text-xs font-bold transition-all capitalize rounded-lg ${difficulty === level ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
+                                    >
+                                        {level}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="w-px h-6 bg-neutral-200/50 dark:bg-white/10"></div>
+
                             {/* Time Options */}
                             <div className="flex gap-1 bg-black/5 dark:bg-white/5 p-1 rounded-xl">
                                 {[15, 30, 60].map(d => (
@@ -614,8 +629,6 @@ export default function App() {
                 onClose={() => setShowAbout(false)} 
                 username={username}
                 onUpdateName={handleUpdateName}
-                difficulty={difficulty}
-                setDifficulty={handleSetDifficulty}
                 caretStyleType={caretStyleType}
                 setCaretStyleType={(val) => { setCaretStyleType(val); saveSettings({ caretStyleType: val }); }}
                 fontFamily={fontFamily}
