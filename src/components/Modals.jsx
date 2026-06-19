@@ -183,16 +183,13 @@ export const AboutModal = ({ isOpen, onClose, username, onUpdateName, caretStyle
                     </div>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-black/10 dark:border-white/10 flex justify-center">
-                    <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-full border border-blue-500/20 shadow-xl shadow-blue-500/5 transition-transform hover:scale-105 cursor-default group backdrop-blur-xl">
-                        <div className="p-2 bg-blue-500/10 rounded-full group-hover:bg-blue-500/20 transition-colors">
-                            <Icons.Trophy className="w-5 h-5 text-blue-500 group-hover:animate-pulse" />
-                        </div>
-                        <div className="flex flex-col text-left">
-                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neutral-400 mb-0.5">Engineered By</span>
-                            <span className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 tracking-wide">
-                                Hemanth Kumar K
-                            </span>
+                <div className="mt-10 flex justify-center">
+                    <div className="relative group cursor-default">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                        <div className="relative flex items-center gap-4 bg-white dark:bg-neutral-900 px-6 py-4 rounded-xl border border-neutral-200 dark:border-white/10 leading-none shadow-xl">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-500">Engineered By</span>
+                            <div className="w-px h-4 bg-neutral-200 dark:bg-white/10"></div>
+                            <span className="text-sm font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500">Hemanth Kumar K</span>
                         </div>
                     </div>
                 </div>

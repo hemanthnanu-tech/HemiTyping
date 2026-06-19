@@ -378,11 +378,11 @@ export default function App() {
     const fontClass = fontFamily === 'mono' ? 'font-mono' : fontFamily === 'serif' ? 'font-serif' : 'font-sans';
 
     return (
-        <div className={`h-screen overflow-hidden relative flex flex-col items-center justify-center p-4 selection:bg-blue-500/30 ${fontClass} ${isCodeMode ? 'code-mode-aura' : ''}`}>
+        <div className={`min-h-screen relative flex flex-col items-center p-4 md:p-8 selection:bg-blue-500/30 ${fontClass} ${isCodeMode ? 'code-mode-aura' : ''}`}>
             <div className="bg-aura"></div>
             {showConfetti && <Confetti />}
 
-            <div className="z-10 w-full max-w-6xl flex flex-col justify-center h-full pb-10">
+            <div className="z-10 w-full max-w-6xl flex flex-col my-auto py-6 md:py-10">
                 
                 {/* Premium Minimal Header */}
                 <header className={`flex justify-between items-center mb-6 md:mb-10 transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
