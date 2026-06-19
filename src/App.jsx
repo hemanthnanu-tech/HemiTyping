@@ -411,59 +411,62 @@ export default function App() {
                         </h1>
                     </div>
 
-                    {/* Game Modes (Nav Bar) */}
-                    <div className="hidden lg:flex items-center gap-2">
-                        <button 
-                            onClick={() => { setIsCodeMode(false); setMode('prose'); generateText('prose'); }}
-                            className={`bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors focus:outline-none ${!isCodeMode ? 'text-blue-500' : 'text-neutral-500 hover:text-blue-500'}`}
-                        >
-                            Prose
-                        </button>
-                        
-                        <button 
-                            onClick={() => { setIsCodeMode(true); setMode('javascript'); generateText('javascript'); }}
-                            className={`bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors focus:outline-none ${isCodeMode ? 'text-indigo-400' : 'text-neutral-500 hover:text-indigo-400'}`}
-                        >
-                            Code
-                        </button>
-                        
-                        <button
-                            onClick={cycleDifficulty}
-                            className="bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-blue-500 transition-colors focus:outline-none"
-                            title="Click to change difficulty"
-                        >
-                            {difficulty}
-                        </button>
+                    {/* Right Clustered Nav */}
+                    <div className="flex items-center gap-2 md:gap-4">
+                        {/* Game Modes (Nav Bar) */}
+                        <div className="hidden lg:flex items-center gap-2">
+                            <button 
+                                onClick={() => { setIsCodeMode(false); setMode('prose'); generateText('prose'); }}
+                                className={`bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors focus:outline-none ${!isCodeMode ? 'text-blue-500' : 'text-neutral-500 hover:text-blue-500'}`}
+                            >
+                                Prose
+                            </button>
+                            
+                            <button 
+                                onClick={() => { setIsCodeMode(true); setMode('javascript'); generateText('javascript'); }}
+                                className={`bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors focus:outline-none ${isCodeMode ? 'text-indigo-400' : 'text-neutral-500 hover:text-indigo-400'}`}
+                            >
+                                Code
+                            </button>
+                            
+                            <button
+                                onClick={cycleDifficulty}
+                                className="bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-blue-500 transition-colors focus:outline-none"
+                                title="Click to change difficulty"
+                            >
+                                {difficulty}
+                            </button>
 
-                        <button 
-                            onClick={cycleTime}
-                            className="bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-blue-500 transition-colors focus:outline-none"
-                        >
-                            {duration}s
-                        </button>
-                    </div>
+                            <button 
+                                onClick={cycleTime}
+                                className="bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-blue-500 transition-colors focus:outline-none"
+                            >
+                                {duration}s
+                            </button>
+                        </div>
 
-                    {/* Controls */}
-                    <div className="flex items-center gap-2">
-                        <button onClick={toggleSoundProfile} className="bg-black/5 dark:bg-white/5 p-2 px-3 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-blue-500 transition-colors">
-                            {soundProfile === 'mechanical' ? 'Mech' : 'Thock'}
-                        </button>
-                        <button onClick={() => setShowStats(true)} className="bg-black/5 dark:bg-white/5 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-colors">
-                            <Icons.Stats className="w-4 h-4 md:w-5 md:h-5" />
-                        </button>
-                        <button onClick={() => setShowAbout(true)} className="bg-black/5 dark:bg-white/5 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-colors">
-                            <Icons.Info className="w-4 h-4 md:w-5 md:h-5" />
-                        </button>
-                        <button onClick={toggleTheme} className="bg-black/5 dark:bg-white/5 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-colors">
-                            {isDarkMode ? <Icons.Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Icons.Moon className="w-4 h-4 md:w-5 md:h-5" />}
-                        </button>
-                        <button 
-                            onClick={() => generateText(mode, username, difficulty)}
-                            className={`bg-white/50 dark:bg-white/10 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-all focus:outline-none ${isActive ? 'rotate-180' : ''}`}
-                            title="Regenerate & Restart"
-                        >
-                            <Icons.RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
-                        </button>
+                        {/* Controls */}
+                        <div className="flex items-center gap-2">
+                            <button onClick={toggleSoundProfile} className="bg-black/5 dark:bg-white/5 p-2 px-3 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-blue-500 transition-colors">
+                                {soundProfile === 'mechanical' ? 'Mech' : 'Thock'}
+                            </button>
+                            <button onClick={() => setShowStats(true)} className="bg-black/5 dark:bg-white/5 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-colors">
+                                <Icons.Stats className="w-4 h-4 md:w-5 md:h-5" />
+                            </button>
+                            <button onClick={() => setShowAbout(true)} className="bg-black/5 dark:bg-white/5 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-colors">
+                                <Icons.Info className="w-4 h-4 md:w-5 md:h-5" />
+                            </button>
+                            <button onClick={toggleTheme} className="bg-black/5 dark:bg-white/5 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-colors">
+                                {isDarkMode ? <Icons.Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Icons.Moon className="w-4 h-4 md:w-5 md:h-5" />}
+                            </button>
+                            <button 
+                                onClick={() => generateText(mode, username, difficulty)}
+                                className={`bg-white/50 dark:bg-white/10 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-all focus:outline-none ${isActive ? 'rotate-180' : ''}`}
+                                title="Regenerate & Restart"
+                            >
+                                <Icons.RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
+                            </button>
+                        </div>
                     </div>
                 </header>
 
