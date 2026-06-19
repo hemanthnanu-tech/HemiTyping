@@ -396,14 +396,14 @@ export default function App() {
             <div className="bg-aura"></div>
             {showConfetti && <Confetti />}
 
-            <div className="z-10 w-full max-w-6xl flex-1 flex flex-col min-h-0 py-2 md:py-4">
+            <div className="z-10 w-full max-w-5xl mx-auto flex-1 flex flex-col min-h-0 py-2 md:py-4">
                 
                 {/* Premium Minimal Header with Game Modes */}
                 <header className={`w-full flex items-center justify-between gap-4 mb-4 md:mb-8 transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                     
                     {/* Logo */}
                     <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20 transform -rotate-2 hidden sm:block">
+                        <div className="p-2 rounded-xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 shadow-lg shadow-neutral-900/20 dark:shadow-white/20 transform -rotate-2 hidden sm:block">
                             <Icons.Keyboard className="w-5 h-5 rotate-2" />
                         </div>
                         <h1 className="text-xl md:text-2xl font-black tracking-tighter text-neutral-800 dark:text-white">
