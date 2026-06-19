@@ -138,13 +138,6 @@ export default function App() {
         handleSetDifficulty(levels[nextIndex]);
     };
 
-    const cycleMode = () => {
-        const nextMode = isCodeMode ? 'prose' : 'javascript';
-        setIsCodeMode(!isCodeMode);
-        setMode(nextMode);
-        generateText(nextMode);
-    };
-
     const cycleTime = () => {
         const times = [15, 30, 60];
         const nextIndex = (times.indexOf(duration) + 1) % times.length;
@@ -421,10 +414,17 @@ export default function App() {
                     {/* Game Modes (Nav Bar) */}
                     <div className="hidden lg:flex items-center gap-2">
                         <button 
-                            onClick={cycleMode}
-                            className="bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-blue-500 transition-colors focus:outline-none"
+                            onClick={() => { setIsCodeMode(false); setMode('prose'); generateText('prose'); }}
+                            className={`bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors focus:outline-none ${!isCodeMode ? 'text-blue-500' : 'text-neutral-500 hover:text-blue-500'}`}
                         >
-                            {isCodeMode ? 'Code' : 'Prose'}
+                            Prose
+                        </button>
+                        
+                        <button 
+                            onClick={() => { setIsCodeMode(true); setMode('javascript'); generateText('javascript'); }}
+                            className={`bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors focus:outline-none ${isCodeMode ? 'text-indigo-400' : 'text-neutral-500 hover:text-indigo-400'}`}
+                        >
+                            Code
                         </button>
                         
                         <button
@@ -468,46 +468,33 @@ export default function App() {
                 </header>
 
                 {/* Mobile Game Modes (shown only on smaller screens) */}
-                <div className={`lg:hidden flex flex-wrap justify-center items-center gap-2 mb-6 bg-black/5 dark:bg-white/5 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-                    <div className="flex gap-1">
-                        <button 
-                            onClick={() => { setIsCodeMode(false); setMode('prose'); generateText('prose'); }}
-                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] transition-all flex items-center gap-1 ${!isCodeMode ? 'bg-blue-500 text-white shadow-sm' : 'text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5'}`}
-                        >
-                            Prose
-                        </button>
-                        <button 
-                            onClick={() => { setIsCodeMode(true); setMode('javascript'); generateText('javascript'); }}
-                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] transition-all flex items-center gap-1 ${isCodeMode ? 'bg-indigo-500 text-white shadow-sm' : 'text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5'}`}
-                        >
-                            Code
-                        </button>
-                    </div>
+                <div className={`lg:hidden flex flex-wrap justify-center items-center gap-2 mb-6 transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                    <button 
+                        onClick={() => { setIsCodeMode(false); setMode('prose'); generateText('prose'); }}
+                        className={`bg-black/5 dark:bg-white/5 px-4 py-2 rounded-xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] font-bold uppercase tracking-[0.1em] transition-all ${!isCodeMode ? 'text-blue-500' : 'text-neutral-500 hover:text-blue-500'}`}
+                    >
+                        Prose
+                    </button>
+                    <button 
+                        onClick={() => { setIsCodeMode(true); setMode('javascript'); generateText('javascript'); }}
+                        className={`bg-black/5 dark:bg-white/5 px-4 py-2 rounded-xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] font-bold uppercase tracking-[0.1em] transition-all ${isCodeMode ? 'text-indigo-400' : 'text-neutral-500 hover:text-indigo-400'}`}
+                    >
+                        Code
+                    </button>
                     
-                    <div className="w-px h-4 bg-neutral-200 dark:bg-white/10"></div>
-                    
-                    <div className="flex gap-1">
-                        <button
-                            onClick={cycleDifficulty}
-                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] transition-all bg-white dark:bg-neutral-800 text-blue-500 shadow-sm active:scale-95`}
-                        >
-                            {difficulty}
-                        </button>
-                    </div>
+                    <button
+                        onClick={cycleDifficulty}
+                        className={`bg-black/5 dark:bg-white/5 px-4 py-2 rounded-xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] font-bold uppercase tracking-[0.1em] transition-all text-neutral-500 hover:text-blue-500 active:scale-95`}
+                    >
+                        {difficulty}
+                    </button>
 
-                    <div className="w-full h-px bg-neutral-200/50 dark:bg-white/5 my-0.5"></div>
-
-                    <div className="flex gap-1">
-                        {[15, 30, 60].map(d => (
-                            <button 
-                                key={d}
-                                onClick={() => {setDuration(d); resetState(d);}}
-                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] transition-all ${duration === d ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500'}`}
-                            >
-                                {d}s
-                            </button>
-                        ))}
-                    </div>
+                    <button 
+                        onClick={cycleTime}
+                        className={`bg-black/5 dark:bg-white/5 px-4 py-2 rounded-xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] font-bold uppercase tracking-[0.1em] transition-all text-neutral-500 hover:text-blue-500 active:scale-95`}
+                    >
+                        {duration}s
+                    </button>
                 </div>
 
                 {/* Typing Area Layout */}
