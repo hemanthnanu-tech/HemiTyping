@@ -91,6 +91,23 @@ export default function App() {
         }
     }, [isDarkMode]);
 
+    // Global Keydown for Auto-Focus
+    useEffect(() => {
+        const handleGlobalKeyDown = (e) => {
+            // Do not steal focus if user is typing in a modal input
+            if (e.target.tagName === 'INPUT' && e.target !== inputRef.current) return;
+            // Do not steal focus if modals are open or test is finished
+            if (showOnboarding || showAbout || showStats || isFinished) return;
+            
+            if (inputRef.current && document.activeElement !== inputRef.current) {
+                inputRef.current.focus();
+            }
+        };
+        
+        window.addEventListener('keydown', handleGlobalKeyDown);
+        return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+    }, [showOnboarding, showAbout, showStats, isFinished]);
+
     const handleOnboardingComplete = (name) => {
         setUsername(name);
         localStorage.setItem('hemiName', name);
@@ -443,22 +460,22 @@ export default function App() {
                         onClick={() => inputRef.current?.focus()}
                     >
                         {/* Live Stats Header */}
-                        <div className={`flex justify-between items-end mb-8 font-mono transition-opacity duration-300 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                        <div className={`flex justify-between items-end mb-8 font-mono transition-all duration-300`}>
                             <div className="flex gap-12">
                                 <div>
-                                    <div className="text-xs uppercase tracking-widest text-neutral-400 mb-2">Live WPM</div>
-                                    <div className={`text-5xl font-black ${isFullSpeed ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-lg' : 'text-blue-500'}`}>
+                                    <div className={`text-xs uppercase tracking-widest transition-colors ${isActive ? 'text-blue-500/50' : 'text-neutral-400'} mb-2`}>Live WPM</div>
+                                    <div className={`text-5xl font-black transition-colors ${isFullSpeed ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-lg' : 'text-blue-500'}`}>
                                         {currentWpm}
                                     </div>
                                 </div>
                                 <div>
-                                    <div className="text-xs uppercase tracking-widest text-neutral-400 mb-2">Accuracy</div>
-                                    <div className="text-5xl font-light">{accuracy}%</div>
+                                    <div className={`text-xs uppercase tracking-widest transition-colors ${isActive ? 'text-neutral-500/50' : 'text-neutral-400'} mb-2`}>Accuracy</div>
+                                    <div className="text-5xl font-light text-neutral-800 dark:text-neutral-200">{accuracy}%</div>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <div className="text-xs uppercase tracking-widest text-neutral-400 mb-2">Time Remaining</div>
-                                <div className={`text-5xl font-light ${timeLeft <= 10 && isActive ? 'text-red-500 animate-pulse' : ''}`}>{timeLeft}s</div>
+                                <div className={`text-xs uppercase tracking-widest transition-colors ${isActive ? 'text-neutral-500/50' : 'text-neutral-400'} mb-2`}>Time Remaining</div>
+                                <div className={`text-5xl font-light ${timeLeft <= 10 && isActive ? 'text-red-500 animate-pulse' : 'text-neutral-800 dark:text-neutral-200'}`}>{timeLeft}s</div>
                             </div>
                         </div>
 
