@@ -132,6 +132,12 @@ export default function App() {
         generateText(mode, username, level);
     };
 
+    const cycleDifficulty = () => {
+        const levels = ['beginner', 'middle', 'expert'];
+        const nextIndex = (levels.indexOf(difficulty) + 1) % levels.length;
+        handleSetDifficulty(levels[nextIndex]);
+    };
+
     const saveStats = (newStats) => {
         setStats(newStats);
         localStorage.setItem('hemiStats_v4', JSON.stringify(newStats));
@@ -382,7 +388,7 @@ export default function App() {
             <div className="bg-aura"></div>
             {showConfetti && <Confetti />}
 
-            <div className="z-10 w-full max-w-6xl flex flex-col justify-center h-full py-4 md:py-8">
+            <div className="z-10 w-full max-w-6xl flex flex-col my-auto py-4 md:py-8">
                 
                 {/* Premium Minimal Header with Game Modes */}
                 <header className={`w-full flex items-center justify-between gap-4 mb-6 md:mb-10 transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
@@ -417,15 +423,13 @@ export default function App() {
                         <div className="hidden md:block w-px h-6 bg-neutral-200 dark:bg-white/10"></div>
                         
                         <div className="flex gap-1">
-                            {['beginner', 'middle', 'expert'].map((level) => (
-                                <button
-                                    key={level}
-                                    onClick={() => handleSetDifficulty(level)}
-                                    className={`px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-[0.1em] transition-all ${difficulty === level ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
-                                >
-                                    {level}
-                                </button>
-                            ))}
+                            <button
+                                onClick={cycleDifficulty}
+                                className={`px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-[0.1em] transition-all bg-white dark:bg-neutral-800 text-blue-500 shadow-sm hover:scale-[1.02] active:scale-95`}
+                                title="Click to change difficulty"
+                            >
+                                {difficulty}
+                            </button>
                         </div>
 
                         <div className="hidden md:block w-px h-6 bg-neutral-200 dark:bg-white/10"></div>
@@ -459,9 +463,9 @@ export default function App() {
                             {isDarkMode ? <Icons.Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Icons.Moon className="w-4 h-4 md:w-5 md:h-5" />}
                         </button>
                         <button 
-                            onClick={() => resetState()}
+                            onClick={() => generateText(mode, username, difficulty)}
                             className={`p-1.5 md:p-2 rounded-lg text-neutral-500 hover:text-blue-500 hover:bg-blue-500/10 transition-all focus:outline-none ml-1 md:ml-2 bg-white/50 dark:bg-white/5 shadow-sm border border-neutral-200/50 dark:border-white/5 ${isActive ? 'rotate-180' : ''}`}
-                            title="Restart"
+                            title="Regenerate & Restart"
                         >
                             <Icons.RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
                         </button>
@@ -488,15 +492,12 @@ export default function App() {
                     <div className="w-px h-4 bg-neutral-200 dark:bg-white/10"></div>
                     
                     <div className="flex gap-1">
-                        {['beginner', 'middle', 'expert'].map((level) => (
-                            <button
-                                key={level}
-                                onClick={() => handleSetDifficulty(level)}
-                                className={`px-2 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] transition-all ${difficulty === level ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500'}`}
-                            >
-                                {level}
-                            </button>
-                        ))}
+                        <button
+                            onClick={cycleDifficulty}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] transition-all bg-white dark:bg-neutral-800 text-blue-500 shadow-sm active:scale-95`}
+                        >
+                            {difficulty}
+                        </button>
                     </div>
 
                     <div className="w-full h-px bg-neutral-200/50 dark:bg-white/5 my-0.5"></div>
