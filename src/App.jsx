@@ -378,11 +378,11 @@ export default function App() {
     const fontClass = fontFamily === 'mono' ? 'font-mono' : fontFamily === 'serif' ? 'font-serif' : 'font-sans';
 
     return (
-        <div className={`min-h-screen relative flex flex-col items-center p-4 md:p-8 selection:bg-blue-500/30 ${fontClass} ${isCodeMode ? 'code-mode-aura' : ''}`}>
+        <div className={`h-screen overflow-hidden relative flex flex-col items-center p-4 md:p-8 selection:bg-blue-500/30 ${fontClass} ${isCodeMode ? 'code-mode-aura' : ''}`}>
             <div className="bg-aura"></div>
             {showConfetti && <Confetti />}
 
-            <div className="z-10 w-full max-w-6xl flex flex-col my-auto py-6 md:py-10">
+            <div className="z-10 w-full max-w-6xl flex flex-col h-full py-6 md:py-10">
                 
                 {/* Premium Minimal Header */}
                 <header className={`flex justify-between items-center mb-6 md:mb-10 transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
@@ -416,7 +416,7 @@ export default function App() {
                 </header>
 
                 {/* Sub-modes & Layout */}
-                <div className={`transition-all duration-700 transform ${isFinished ? '-translate-y-4 opacity-0 pointer-events-none absolute' : 'translate-y-0'}`}>
+                <div className={`flex-1 flex flex-col transition-all duration-700 transform ${isFinished ? '-translate-y-4 opacity-0 pointer-events-none absolute' : 'translate-y-0'}`}>
                     
                     <div className={`flex flex-wrap gap-4 justify-between items-center mb-4 px-4 transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                         <div className="flex gap-2">
@@ -478,7 +478,7 @@ export default function App() {
 
                     {/* Main Glass Typing Container */}
                     <div 
-                        className={`relative glass-panel rounded-[2.5rem] p-8 md:p-12 mb-4 flex flex-col min-h-[400px] md:min-h-[450px] shadow-2xl dark:shadow-[0_20px_80px_-20px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10 ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''} ${isFullSpeed ? 'speed-glow' : ''}`}
+                        className={`relative glass-panel rounded-[2.5rem] p-6 md:p-12 mb-4 flex-1 flex flex-col shadow-2xl dark:shadow-[0_20px_80px_-20px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10 ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''} ${isFullSpeed ? 'speed-glow' : ''}`}
                         onClick={() => inputRef.current?.focus()}
                     >
                         {/* Live Stats Header */}

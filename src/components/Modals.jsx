@@ -183,15 +183,10 @@ export const AboutModal = ({ isOpen, onClose, username, onUpdateName, caretStyle
                     </div>
                 </div>
 
-                <div className="mt-10 flex justify-center">
-                    <div className="relative group cursor-default">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-                        <div className="relative flex items-center gap-4 bg-white dark:bg-neutral-900 px-6 py-4 rounded-xl border border-neutral-200 dark:border-white/10 leading-none shadow-xl">
-                            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-500">Engineered By</span>
-                            <div className="w-px h-4 bg-neutral-200 dark:bg-white/10"></div>
-                            <span className="text-sm font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500">Hemanth Kumar K</span>
-                        </div>
-                    </div>
+                <div className="mt-10 pt-6 border-t border-black/10 dark:border-white/10 flex justify-center">
+                    <p className="text-sm font-medium text-neutral-400">
+                        Engineered by <span className="font-bold text-neutral-800 dark:text-neutral-200">Hemanth Kumar K</span>
+                    </p>
                 </div>
             </div>
         </div>
