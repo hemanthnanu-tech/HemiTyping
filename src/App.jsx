@@ -528,6 +528,20 @@ export default function App() {
                             </div>
                         </div>
 
+                        {/* Stop Button (Visible only when typing) */}
+                        <div className={`absolute bottom-6 md:bottom-10 left-1/2 transform -translate-x-1/2 z-30 transition-all duration-300 ${isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+                            <button 
+                                onClick={(e) => {
+                                    e.stopPropagation(); // Prevent focusing the hidden input
+                                    generateText(mode, username, difficulty);
+                                }} 
+                                className="flex items-center gap-2 px-6 py-2 md:py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 hover:text-red-400 rounded-2xl font-bold uppercase tracking-widest text-[10px] md:text-xs backdrop-blur-xl border border-red-500/20 shadow-lg transition-all focus:outline-none hover:scale-105 active:scale-95"
+                                title="Stop Test"
+                            >
+                                Stop
+                            </button>
+                        </div>
+
                         {/* BIG BOLD Text Display */}
                         <div className="relative flex-1 flex flex-col justify-center w-full">
                             <div 
