@@ -448,23 +448,23 @@ export default function App() {
                     </div>
 
                     {/* Controls */}
-                    <div className="flex items-center gap-1 sm:gap-2">
-                        <button onClick={toggleSoundProfile} className="px-2 py-1.5 rounded-lg text-[10px] md:text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                    <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1.5 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm">
+                        <button onClick={toggleSoundProfile} className="px-3 py-1.5 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                             {soundProfile === 'mechanical' ? 'Mech' : 'Thock'}
                         </button>
-                        <div className="hidden sm:block w-px h-4 bg-neutral-200/50 dark:bg-white/10 mx-1"></div>
-                        <button onClick={() => setShowStats(true)} className="p-1.5 md:p-2 rounded-lg text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                        <div className="w-px h-4 bg-neutral-200 dark:bg-white/10 mx-1"></div>
+                        <button onClick={() => setShowStats(true)} className="p-2 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                             <Icons.Stats className="w-4 h-4 md:w-5 md:h-5" />
                         </button>
-                        <button onClick={() => setShowAbout(true)} className="p-1.5 md:p-2 rounded-lg text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                        <button onClick={() => setShowAbout(true)} className="p-2 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                             <Icons.Info className="w-4 h-4 md:w-5 md:h-5" />
                         </button>
-                        <button onClick={toggleTheme} className="p-1.5 md:p-2 rounded-lg text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                        <button onClick={toggleTheme} className="p-2 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
                             {isDarkMode ? <Icons.Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Icons.Moon className="w-4 h-4 md:w-5 md:h-5" />}
                         </button>
                         <button 
                             onClick={() => generateText(mode, username, difficulty)}
-                            className={`p-1.5 md:p-2 rounded-lg text-neutral-500 hover:text-blue-500 hover:bg-blue-500/10 transition-all focus:outline-none ml-1 md:ml-2 bg-white/50 dark:bg-white/5 shadow-sm border border-neutral-200/50 dark:border-white/5 ${isActive ? 'rotate-180' : ''}`}
+                            className={`p-2 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-blue-500/10 transition-all focus:outline-none ml-1 bg-white/50 dark:bg-white/5 shadow-sm border border-neutral-200/50 dark:border-white/5 ${isActive ? 'rotate-180' : ''}`}
                             title="Regenerate & Restart"
                         >
                             <Icons.RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
@@ -520,7 +520,7 @@ export default function App() {
                     
                     {/* Main Glass Typing Container */}
                     <div 
-                        className={`relative glass-panel rounded-[2rem] p-6 md:p-10 shadow-2xl dark:shadow-[0_20px_80px_-20px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10 flex-1 flex flex-col justify-center ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''} ${isFullSpeed ? 'speed-glow' : ''}`}
+                        className={`relative glass-panel rounded-[2rem] p-6 md:p-10 shadow-2xl dark:shadow-[0_20px_80px_-20px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10 flex flex-col min-h-[400px] md:min-h-[500px] w-full ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''} ${isFullSpeed ? 'speed-glow' : ''}`}
                         onClick={() => inputRef.current?.focus()}
                     >
                         {/* Live Stats Header */}
@@ -544,10 +544,10 @@ export default function App() {
                         </div>
 
                         {/* BIG BOLD Text Display */}
-                        <div className="relative mt-4 md:mt-8">
+                        <div className="relative flex-1 flex flex-col justify-center w-full">
                             <div 
                                 ref={textContainerRef}
-                                className={`${isCodeMode || fontFamily === 'mono' ? 'font-mono tracking-normal' : ''} text-2xl md:text-3xl lg:text-4xl leading-[1.6] font-black break-words pointer-events-none select-none max-h-[40vh] overflow-hidden`}
+                                className={`${isCodeMode || fontFamily === 'mono' ? 'font-mono tracking-normal' : ''} text-2xl md:text-3xl lg:text-4xl leading-[1.6] font-black break-words pointer-events-none select-none`}
                             >
                                 {renderText()}
                             </div>
