@@ -388,10 +388,10 @@ export default function App() {
             <div className="bg-aura"></div>
             {showConfetti && <Confetti />}
 
-            <div className="z-10 w-full max-w-6xl flex flex-col my-auto py-4 md:py-8">
+            <div className="z-10 w-full max-w-6xl flex flex-col my-auto py-2 md:py-4">
                 
                 {/* Premium Minimal Header with Game Modes */}
-                <header className={`w-full flex items-center justify-between gap-4 mb-6 md:mb-10 transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
+                <header className={`w-full flex items-center justify-between gap-4 mb-4 md:mb-8 transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
                     
                     {/* Logo */}
                     <div className="flex items-center gap-3">
@@ -404,8 +404,9 @@ export default function App() {
                     </div>
 
                     {/* Game Modes (Nav Bar) */}
-                    <div className="hidden lg:flex items-center bg-black/5 dark:bg-white/5 p-1.5 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm">
-                        <div className="flex gap-1">
+                    <div className="hidden lg:flex items-center gap-3">
+                        {/* Mode Select */}
+                        <div className="flex gap-1 items-center bg-black/5 dark:bg-white/5 p-1 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm">
                             <button 
                                 onClick={() => { setIsCodeMode(false); setMode('prose'); generateText('prose'); }}
                                 className={`px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-[0.1em] transition-all flex items-center gap-2 ${!isCodeMode ? 'bg-blue-500 text-white shadow-md' : 'text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5'}`}
@@ -420,9 +421,8 @@ export default function App() {
                             </button>
                         </div>
                         
-                        <div className="hidden md:block w-px h-6 bg-neutral-200 dark:bg-white/10"></div>
-                        
-                        <div className="flex gap-1">
+                        {/* Difficulty Select */}
+                        <div className="flex items-center bg-black/5 dark:bg-white/5 p-1 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm">
                             <button
                                 onClick={cycleDifficulty}
                                 className={`px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-[0.1em] transition-all bg-white dark:bg-neutral-800 text-blue-500 shadow-sm hover:scale-[1.02] active:scale-95`}
@@ -432,9 +432,8 @@ export default function App() {
                             </button>
                         </div>
 
-                        <div className="hidden md:block w-px h-6 bg-neutral-200 dark:bg-white/10"></div>
-
-                        <div className="flex gap-1">
+                        {/* Time Select */}
+                        <div className="flex gap-1 items-center bg-black/5 dark:bg-white/5 p-1 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm">
                             {[15, 30, 60].map(d => (
                                 <button 
                                     key={d}
@@ -448,23 +447,22 @@ export default function App() {
                     </div>
 
                     {/* Controls */}
-                    <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 p-1.5 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm">
-                        <button onClick={toggleSoundProfile} className="px-3 py-1.5 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                    <div className="flex items-center gap-2">
+                        <button onClick={toggleSoundProfile} className="bg-black/5 dark:bg-white/5 p-2 px-3 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-blue-500 transition-colors">
                             {soundProfile === 'mechanical' ? 'Mech' : 'Thock'}
                         </button>
-                        <div className="w-px h-4 bg-neutral-200 dark:bg-white/10 mx-1"></div>
-                        <button onClick={() => setShowStats(true)} className="p-2 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                        <button onClick={() => setShowStats(true)} className="bg-black/5 dark:bg-white/5 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-colors">
                             <Icons.Stats className="w-4 h-4 md:w-5 md:h-5" />
                         </button>
-                        <button onClick={() => setShowAbout(true)} className="p-2 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                        <button onClick={() => setShowAbout(true)} className="bg-black/5 dark:bg-white/5 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-colors">
                             <Icons.Info className="w-4 h-4 md:w-5 md:h-5" />
                         </button>
-                        <button onClick={toggleTheme} className="p-2 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                        <button onClick={toggleTheme} className="bg-black/5 dark:bg-white/5 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-colors">
                             {isDarkMode ? <Icons.Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Icons.Moon className="w-4 h-4 md:w-5 md:h-5" />}
                         </button>
                         <button 
                             onClick={() => generateText(mode, username, difficulty)}
-                            className={`p-2 rounded-xl text-neutral-500 hover:text-blue-500 hover:bg-blue-500/10 transition-all focus:outline-none ml-1 bg-white/50 dark:bg-white/5 shadow-sm border border-neutral-200/50 dark:border-white/5 ${isActive ? 'rotate-180' : ''}`}
+                            className={`bg-white/50 dark:bg-white/10 p-2 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-neutral-500 hover:text-blue-500 transition-all focus:outline-none ${isActive ? 'rotate-180' : ''}`}
                             title="Regenerate & Restart"
                         >
                             <Icons.RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
@@ -520,7 +518,7 @@ export default function App() {
                     
                     {/* Main Glass Typing Container */}
                     <div 
-                        className={`relative glass-panel rounded-[2rem] p-6 md:p-10 shadow-2xl dark:shadow-[0_20px_80px_-20px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10 flex flex-col min-h-[400px] md:min-h-[500px] w-full ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''} ${isFullSpeed ? 'speed-glow' : ''}`}
+                        className={`relative glass-panel rounded-[2rem] p-6 md:p-10 shadow-2xl dark:shadow-[0_20px_80px_-20px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10 flex flex-col min-h-[350px] md:min-h-[400px] w-full ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''} ${isFullSpeed ? 'speed-glow' : ''}`}
                         onClick={() => inputRef.current?.focus()}
                     >
                         {/* Live Stats Header */}
