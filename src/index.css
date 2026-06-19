@@ -136,12 +136,23 @@ body {
 /* Smooth Caret */
 .smooth-caret {
   position: absolute;
-  width: 3px;
-  height: 1.2em;
   background-color: var(--color-primary);
   border-radius: 2px;
   transition: left 0.1s cubic-bezier(0.4, 0, 0.2, 1), top 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   animation: blink 1s step-end infinite;
+}
+
+.smooth-caret.line {
+  width: 3px;
+}
+.smooth-caret.block {
+  width: 0.6em;
+  opacity: 0.5;
+}
+.smooth-caret.underline {
+  width: 0.6em;
+  height: 4px !important;
+  transform: translateY(1.1em);
 }
 
 .dark .smooth-caret {
@@ -155,11 +166,22 @@ body {
 /* Ghost Caret */
 .ghost-caret {
   position: absolute;
-  width: 3px;
-  height: 1.2em;
   background-color: rgba(163, 163, 163, 0.3);
   border-radius: 2px;
   transition: left 0.1s linear, top 0.1s linear;
+}
+
+.ghost-caret.line {
+  width: 3px;
+}
+.ghost-caret.block {
+  width: 0.6em;
+  opacity: 0.3;
+}
+.ghost-caret.underline {
+  width: 0.6em;
+  height: 4px !important;
+  transform: translateY(1.1em);
 }
 
 @keyframes blink {

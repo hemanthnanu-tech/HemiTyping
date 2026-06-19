@@ -89,7 +89,7 @@ export const OnboardingModal = ({ isOpen, onComplete }) => {
     );
 };
 
-export const AboutModal = ({ isOpen, onClose, username, onUpdateName, difficulty, setDifficulty }) => {
+export const AboutModal = ({ isOpen, onClose, username, onUpdateName, difficulty, setDifficulty, caretStyleType, setCaretStyleType, fontFamily, setFontFamily }) => {
     const [editName, setEditName] = useState(username || "");
 
     useEffect(() => {
@@ -156,12 +156,50 @@ export const AboutModal = ({ isOpen, onClose, username, onUpdateName, difficulty
                             ))}
                         </div>
                     </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-500">Caret Style</label>
+                        <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+                            {['line', 'block', 'underline'].map((style) => (
+                                <button
+                                    key={style}
+                                    onClick={() => setCaretStyleType(style)}
+                                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${caretStyleType === style ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
+                                >
+                                    {style}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-neutral-500">Font Family</label>
+                        <div className="flex bg-black/5 dark:bg-white/5 p-1 rounded-xl">
+                            {['sans', 'mono', 'serif'].map((font) => (
+                                <button
+                                    key={font}
+                                    onClick={() => setFontFamily(font)}
+                                    className={`flex-1 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${fontFamily === font ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
+                                >
+                                    {font}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-black/10 dark:border-white/10 text-center">
-                    <p className="text-[10px] font-bold tracking-[0.3em] uppercase text-neutral-400">
-                        Crafted by <span className="text-blue-500">Hemanth Kumar K</span>
-                    </p>
+                <div className="mt-8 pt-6 border-t border-black/10 dark:border-white/10 flex justify-center">
+                    <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 rounded-full border border-blue-500/20 shadow-xl shadow-blue-500/5 transition-transform hover:scale-105 cursor-default group backdrop-blur-xl">
+                        <div className="p-2 bg-blue-500/10 rounded-full group-hover:bg-blue-500/20 transition-colors">
+                            <Icons.Trophy className="w-5 h-5 text-blue-500 group-hover:animate-pulse" />
+                        </div>
+                        <div className="flex flex-col text-left">
+                            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-neutral-400 mb-0.5">Engineered By</span>
+                            <span className="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 tracking-wide">
+                                Hemanth Kumar K
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

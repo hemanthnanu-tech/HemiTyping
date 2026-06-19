@@ -42,6 +42,10 @@ export default function App() {
     const [isDarkMode, setIsDarkMode] = useState(true);
     const [errorShake, setErrorShake] = useState(false);
     const [showConfetti, setShowConfetti] = useState(false);
+    
+    // Additional Settings
+    const [caretStyleType, setCaretStyleType] = useState('line');
+    const [fontFamily, setFontFamily] = useState('sans');
 
     // Persistent Stats
     const [stats, setStats] = useState({ totalRuns: 0, avgWpm: 0, bestWpm: 0, totalChars: 0, history: [] });
@@ -73,6 +77,8 @@ export default function App() {
             if (settings.soundProfile !== undefined) setSoundProfile(settings.soundProfile);
             if (settings.isDarkMode !== undefined) setIsDarkMode(settings.isDarkMode);
             if (settings.difficulty !== undefined) initialDiff = settings.difficulty;
+            if (settings.caretStyleType !== undefined) setCaretStyleType(settings.caretStyleType);
+            if (settings.fontFamily !== undefined) setFontFamily(settings.fontFamily);
         }
         
         setDifficulty(initialDiff);
@@ -132,7 +138,7 @@ export default function App() {
     };
 
     const saveSettings = (updates) => {
-        const current = { soundEnabled, soundProfile, isDarkMode, difficulty, ...updates };
+        const current = { soundEnabled, soundProfile, isDarkMode, difficulty, caretStyleType, fontFamily, ...updates };
         localStorage.setItem('hemiSettings_v4', JSON.stringify(current));
     };
 
@@ -369,9 +375,10 @@ export default function App() {
 
     const currentWpm = isActive ? Math.round((userInput.length / 5) / ((Date.now() - startTime) / 60000)) || 0 : wpm;
     const isFullSpeed = isActive && currentWpm > 60;
+    const fontClass = fontFamily === 'mono' ? 'font-mono' : fontFamily === 'serif' ? 'font-serif' : 'font-sans';
 
     return (
-        <div className={`h-screen overflow-hidden relative flex flex-col items-center justify-center p-4 selection:bg-blue-500/30 font-sans ${isCodeMode ? 'code-mode-aura' : ''}`}>
+        <div className={`h-screen overflow-hidden relative flex flex-col items-center justify-center p-4 selection:bg-blue-500/30 ${fontClass} ${isCodeMode ? 'code-mode-aura' : ''}`}>
             <div className="bg-aura"></div>
             {showConfetti && <Confetti />}
 
@@ -483,19 +490,19 @@ export default function App() {
                         <div className="relative">
                             <div 
                                 ref={textContainerRef}
-                                className={`relative ${isCodeMode ? 'font-mono tracking-normal' : 'font-sans tracking-tight'} text-3xl md:text-5xl leading-[1.4] font-black break-words pointer-events-none select-none`}
+                                className={`relative ${isCodeMode || fontFamily === 'mono' ? 'font-mono tracking-normal' : ''} text-3xl md:text-5xl leading-[1.4] font-black break-words pointer-events-none select-none`}
                             >
                                 {renderText()}
                             </div>
                             
                             {/* Smooth Caret */}
                             {!isFinished && (
-                                <div className="smooth-caret" style={caretStyle}></div>
+                                <div className={`smooth-caret ${caretStyleType}`} style={caretStyle}></div>
                             )}
 
                             {/* Ghost Caret */}
                             {!isFinished && isActive && (
-                                <div className="ghost-caret" style={ghostStyle}></div>
+                                <div className={`ghost-caret ${caretStyleType}`} style={ghostStyle}></div>
                             )}
                         </div>
 
@@ -609,6 +616,10 @@ export default function App() {
                 onUpdateName={handleUpdateName}
                 difficulty={difficulty}
                 setDifficulty={handleSetDifficulty}
+                caretStyleType={caretStyleType}
+                setCaretStyleType={(val) => { setCaretStyleType(val); saveSettings({ caretStyleType: val }); }}
+                fontFamily={fontFamily}
+                setFontFamily={(val) => { setFontFamily(val); saveSettings({ fontFamily: val }); }}
             />
         </div>
     );
