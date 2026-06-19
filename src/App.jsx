@@ -138,6 +138,21 @@ export default function App() {
         handleSetDifficulty(levels[nextIndex]);
     };
 
+    const cycleMode = () => {
+        const nextMode = isCodeMode ? 'prose' : 'javascript';
+        setIsCodeMode(!isCodeMode);
+        setMode(nextMode);
+        generateText(nextMode);
+    };
+
+    const cycleTime = () => {
+        const times = [15, 30, 60];
+        const nextIndex = (times.indexOf(duration) + 1) % times.length;
+        const newD = times[nextIndex];
+        setDuration(newD);
+        resetState(newD);
+    };
+
     const saveStats = (newStats) => {
         setStats(newStats);
         localStorage.setItem('hemiStats_v4', JSON.stringify(newStats));
@@ -388,7 +403,7 @@ export default function App() {
             <div className="bg-aura"></div>
             {showConfetti && <Confetti />}
 
-            <div className="z-10 w-full max-w-6xl flex flex-col my-auto py-2 md:py-4">
+            <div className="z-10 w-full max-w-6xl flex-1 flex flex-col min-h-0 py-2 md:py-4">
                 
                 {/* Premium Minimal Header with Game Modes */}
                 <header className={`w-full flex items-center justify-between gap-4 mb-4 md:mb-8 transition-opacity duration-500 ${isActive ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
@@ -404,46 +419,28 @@ export default function App() {
                     </div>
 
                     {/* Game Modes (Nav Bar) */}
-                    <div className="hidden lg:flex items-center gap-3">
-                        {/* Mode Select */}
-                        <div className="flex gap-1 items-center bg-black/5 dark:bg-white/5 p-1 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm">
-                            <button 
-                                onClick={() => { setIsCodeMode(false); setMode('prose'); generateText('prose'); }}
-                                className={`px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-[0.1em] transition-all flex items-center gap-2 ${!isCodeMode ? 'bg-blue-500 text-white shadow-md' : 'text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5'}`}
-                            >
-                                Prose
-                            </button>
-                            <button 
-                                onClick={() => { setIsCodeMode(true); setMode('javascript'); generateText('javascript'); }}
-                                className={`px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-[0.1em] transition-all flex items-center gap-2 ${isCodeMode ? 'bg-indigo-500 text-white shadow-md' : 'text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5'}`}
-                            >
-                                Code
-                            </button>
-                        </div>
+                    <div className="hidden lg:flex items-center gap-2">
+                        <button 
+                            onClick={cycleMode}
+                            className="bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-blue-500 transition-colors focus:outline-none"
+                        >
+                            {isCodeMode ? 'Code' : 'Prose'}
+                        </button>
                         
-                        {/* Difficulty Select */}
-                        <div className="flex items-center bg-black/5 dark:bg-white/5 p-1 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm">
-                            <button
-                                onClick={cycleDifficulty}
-                                className={`px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-[0.1em] transition-all bg-white dark:bg-neutral-800 text-blue-500 shadow-sm hover:scale-[1.02] active:scale-95`}
-                                title="Click to change difficulty"
-                            >
-                                {difficulty}
-                            </button>
-                        </div>
+                        <button
+                            onClick={cycleDifficulty}
+                            className="bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-blue-500 transition-colors focus:outline-none"
+                            title="Click to change difficulty"
+                        >
+                            {difficulty}
+                        </button>
 
-                        {/* Time Select */}
-                        <div className="flex gap-1 items-center bg-black/5 dark:bg-white/5 p-1 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm">
-                            {[15, 30, 60].map(d => (
-                                <button 
-                                    key={d}
-                                    onClick={() => {setDuration(d); resetState(d);}}
-                                    className={`px-4 py-2 rounded-xl text-[10px] md:text-xs font-bold uppercase tracking-[0.1em] transition-all ${duration === d ? 'bg-white dark:bg-neutral-800 text-blue-500 shadow-sm' : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200'}`}
-                                >
-                                    {d}s
-                                </button>
-                            ))}
-                        </div>
+                        <button 
+                            onClick={cycleTime}
+                            className="bg-black/5 dark:bg-white/5 p-2 px-3 md:px-4 rounded-2xl backdrop-blur-xl border border-neutral-200/50 dark:border-white/5 shadow-sm text-[10px] md:text-xs font-bold uppercase tracking-widest text-neutral-500 hover:text-blue-500 transition-colors focus:outline-none"
+                        >
+                            {duration}s
+                        </button>
                     </div>
 
                     {/* Controls */}
@@ -514,11 +511,11 @@ export default function App() {
                 </div>
 
                 {/* Typing Area Layout */}
-                <div className={`transition-all duration-700 transform w-full max-w-5xl mx-auto ${isFinished ? '-translate-y-4 opacity-0 pointer-events-none absolute' : 'translate-y-0'}`}>
+                <div className={`transition-all flex-1 flex flex-col min-h-0 justify-center duration-700 transform w-full max-w-5xl mx-auto ${isFinished ? '-translate-y-4 opacity-0 pointer-events-none absolute' : 'translate-y-0'}`}>
                     
                     {/* Main Glass Typing Container */}
                     <div 
-                        className={`relative glass-panel rounded-[2rem] p-6 md:p-10 shadow-2xl dark:shadow-[0_20px_80px_-20px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10 flex flex-col min-h-[350px] md:min-h-[400px] w-full ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''} ${isFullSpeed ? 'speed-glow' : ''}`}
+                        className={`relative glass-panel rounded-[2rem] p-6 md:p-10 shadow-2xl dark:shadow-[0_20px_80px_-20px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10 flex flex-col flex-1 min-h-0 w-full ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''} ${isFullSpeed ? 'speed-glow' : ''}`}
                         onClick={() => inputRef.current?.focus()}
                     >
                         {/* Live Stats Header */}
