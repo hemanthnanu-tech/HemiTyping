@@ -478,34 +478,34 @@ export default function App() {
 
                     {/* Main Glass Typing Container */}
                     <div 
-                        className={`relative glass-panel rounded-[2rem] p-6 md:p-10 mb-4 ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''} ${isFullSpeed ? 'speed-glow' : ''}`}
+                        className={`relative glass-panel rounded-[2.5rem] p-8 md:p-12 mb-4 flex flex-col min-h-[400px] md:min-h-[450px] shadow-2xl dark:shadow-[0_20px_80px_-20px_rgba(0,0,0,0.5)] border border-white/20 dark:border-white/10 ${isActive ? 'typing-active' : ''} ${errorShake ? 'error-glow' : ''} ${isFullSpeed ? 'speed-glow' : ''}`}
                         onClick={() => inputRef.current?.focus()}
                     >
                         {/* Live Stats Header */}
-                        <div className={`flex justify-between items-end mb-8 font-mono transition-all duration-300`}>
-                            <div className="flex gap-12">
+                        <div className={`flex justify-between items-start font-mono transition-all duration-300 z-10 ${isActive ? 'opacity-40' : 'opacity-100'}`}>
+                            <div className="flex gap-8 md:gap-16">
                                 <div>
-                                    <div className={`text-xs uppercase tracking-widest transition-colors ${isActive ? 'text-blue-500/50' : 'text-neutral-400'} mb-2`}>Live WPM</div>
-                                    <div className={`text-5xl font-black transition-colors ${isFullSpeed ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-lg' : 'text-blue-500'}`}>
-                                        {currentWpm}
+                                    <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 mb-2">Live Speed</div>
+                                    <div className={`text-4xl font-black transition-colors ${isFullSpeed ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-500' : 'text-blue-500'}`}>
+                                        {currentWpm} <span className="text-sm font-bold text-blue-500/50">WPM</span>
                                     </div>
                                 </div>
                                 <div>
-                                    <div className={`text-xs uppercase tracking-widest transition-colors ${isActive ? 'text-neutral-500/50' : 'text-neutral-400'} mb-2`}>Accuracy</div>
-                                    <div className="text-5xl font-light text-neutral-800 dark:text-neutral-200">{accuracy}%</div>
+                                    <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 mb-2">Accuracy</div>
+                                    <div className="text-4xl font-light text-neutral-800 dark:text-neutral-200">{accuracy}<span className="text-sm font-bold text-neutral-500/50">%</span></div>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <div className={`text-xs uppercase tracking-widest transition-colors ${isActive ? 'text-neutral-500/50' : 'text-neutral-400'} mb-2`}>Time Remaining</div>
-                                <div className={`text-5xl font-light ${timeLeft <= 10 && isActive ? 'text-red-500 animate-pulse' : 'text-neutral-800 dark:text-neutral-200'}`}>{timeLeft}s</div>
+                                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 mb-2">Timer</div>
+                                <div className={`text-4xl font-light ${timeLeft <= 10 && isActive ? 'text-red-500 animate-pulse' : 'text-neutral-800 dark:text-neutral-200'}`}>{timeLeft}<span className="text-sm font-bold text-neutral-500/50">s</span></div>
                             </div>
                         </div>
 
                         {/* BIG BOLD Text Display */}
-                        <div className="relative">
+                        <div className="relative flex-1 flex flex-col justify-center mt-6">
                             <div 
                                 ref={textContainerRef}
-                                className={`relative ${isCodeMode || fontFamily === 'mono' ? 'font-mono tracking-normal' : ''} text-3xl md:text-5xl leading-[1.4] font-black break-words pointer-events-none select-none`}
+                                className={`${isCodeMode || fontFamily === 'mono' ? 'font-mono tracking-normal' : ''} text-3xl md:text-5xl leading-[1.5] font-black break-words pointer-events-none select-none`}
                             >
                                 {renderText()}
                             </div>
